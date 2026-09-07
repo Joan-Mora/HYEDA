@@ -1,0 +1,8 @@
+(function(){
+  const xml = atob(window._hyedaB64);
+  const doc = new DOMParser().parseFromString(xml,'text/xml');
+  const err = doc.querySelector('parsererror');
+  if(err) return 'ERR:'+err.textContent.slice(0,100);
+  d.fromXML(doc);
+  return 'OK:'+d.tableManager.tables.length+':'+d.tableManager.tables.map(t=>t.getName()).join(',');
+})()

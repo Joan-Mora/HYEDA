@@ -1,0 +1,654 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- SQL XML - HYEDA - TCGS-F2-HYEDA-Aveiga -->
+<!-- Comentarios en espanol; tablas y campos en ingles -->
+<sql>
+<datatypes db="mysql">
+  <group label="Numeric" color="rgb(238,238,170)">
+    <type label="Integer" length="0" sql="INTEGER" quote=""/>
+    <type label="BigInt" length="0" sql="BIGINT" quote=""/>
+    <type label="Decimal" length="1" sql="DECIMAL" re="DEC" quote=""/>
+    <type label="Float" length="0" sql="FLOAT" quote=""/>
+    <type label="Double" length="0" sql="DOUBLE" quote=""/>
+    <type label="TinyInt" length="0" sql="TINYINT" quote=""/>
+  </group>
+  <group label="Character" color="rgb(255,200,200)">
+    <type label="Char" length="1" sql="CHAR" quote="'"/>
+    <type label="Varchar" length="1" sql="VARCHAR" quote="'"/>
+    <type label="Text" length="0" sql="TEXT" quote="'"/>
+  </group>
+  <group label="Date &amp; Time" color="rgb(200,255,200)">
+    <type label="Date" length="0" sql="DATE" quote="'"/>
+    <type label="Datetime" length="0" sql="DATETIME" quote="'"/>
+    <type label="Timestamp" length="0" sql="TIMESTAMP" quote="'"/>
+  </group>
+</datatypes>
+
+<!-- Clientes de la empresa -->
+<table x="40" y="40" name="customer">
+  <row name="id" null="0" autoincrement="1">
+    <datatype>INTEGER</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="document" null="0" autoincrement="0">
+    <datatype>VARCHAR</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="name" null="0" autoincrement="0">
+    <datatype>VARCHAR</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="phone" null="1" autoincrement="0">
+    <datatype>VARCHAR</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="email" null="1" autoincrement="0">
+    <datatype>VARCHAR</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="address" null="1" autoincrement="0">
+    <datatype>TEXT</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="id_copy_path" null="1" autoincrement="0">
+    <datatype>VARCHAR</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="data_consent" null="0" autoincrement="0">
+    <datatype>TINYINT</datatype>
+    <default>0</default>
+  </row>
+  <row name="reputation_score" null="1" autoincrement="0">
+    <datatype>DECIMAL</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="customer_type" null="1" autoincrement="0">
+    <datatype>VARCHAR</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="created_at" null="1" autoincrement="0">
+    <datatype>TIMESTAMP</datatype>
+    <default>NULL</default>
+  </row>
+  <key name="PRIMARY" type="PRIMARY">
+    <part>id</part>
+  </key>
+  <comment>Clientes y datos de contacto</comment>
+</table>
+
+<!-- Consultas de antecedentes -->
+<table x="40" y="340" name="background_check">
+  <row name="id" null="0" autoincrement="1">
+    <datatype>INTEGER</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="customer_id" null="1" autoincrement="0">
+    <datatype>INTEGER</datatype>
+    <default>NULL</default>
+    <relation table="customer" row="id" />
+  </row>
+  <row name="document" null="0" autoincrement="0">
+    <datatype>VARCHAR</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="result" null="1" autoincrement="0">
+    <datatype>TEXT</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="provider" null="1" autoincrement="0">
+    <datatype>VARCHAR</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="checked_at" null="1" autoincrement="0">
+    <datatype>DATETIME</datatype>
+    <default>NULL</default>
+  </row>
+  <key name="PRIMARY" type="PRIMARY">
+    <part>id</part>
+  </key>
+  <comment>Consultas de antecedentes por cliente</comment>
+</table>
+
+<!-- Inventario de herramientas -->
+<table x="320" y="40" name="product">
+  <row name="id" null="0" autoincrement="1">
+    <datatype>INTEGER</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="name" null="0" autoincrement="0">
+    <datatype>VARCHAR</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="description" null="1" autoincrement="0">
+    <datatype>TEXT</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="daily_price" null="0" autoincrement="0">
+    <datatype>DECIMAL</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="stock_total" null="0" autoincrement="0">
+    <datatype>INTEGER</datatype>
+    <default>0</default>
+  </row>
+  <row name="stock_available" null="0" autoincrement="0">
+    <datatype>INTEGER</datatype>
+    <default>0</default>
+  </row>
+  <row name="min_stock_threshold" null="1" autoincrement="0">
+    <datatype>INTEGER</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="created_at" null="1" autoincrement="0">
+    <datatype>TIMESTAMP</datatype>
+    <default>NULL</default>
+  </row>
+  <key name="PRIMARY" type="PRIMARY">
+    <part>id</part>
+  </key>
+  <comment>Inventario y precios diarios</comment>
+</table>
+
+<!-- Empleados del sistema -->
+<table x="40" y="620" name="user">
+  <row name="id" null="0" autoincrement="1">
+    <datatype>INTEGER</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="username" null="0" autoincrement="0">
+    <datatype>VARCHAR</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="password_hash" null="0" autoincrement="0">
+    <datatype>VARCHAR</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="full_name" null="1" autoincrement="0">
+    <datatype>VARCHAR</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="email" null="1" autoincrement="0">
+    <datatype>VARCHAR</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="active" null="0" autoincrement="0">
+    <datatype>TINYINT</datatype>
+    <default>1</default>
+  </row>
+  <row name="created_at" null="1" autoincrement="0">
+    <datatype>TIMESTAMP</datatype>
+    <default>NULL</default>
+  </row>
+  <key name="PRIMARY" type="PRIMARY">
+    <part>id</part>
+  </key>
+  <comment>Empleados y administradores</comment>
+</table>
+
+<!-- Roles de acceso -->
+<table x="260" y="620" name="role">
+  <row name="id" null="0" autoincrement="1">
+    <datatype>INTEGER</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="name" null="0" autoincrement="0">
+    <datatype>VARCHAR</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="description" null="1" autoincrement="0">
+    <datatype>TEXT</datatype>
+    <default>NULL</default>
+  </row>
+  <key name="PRIMARY" type="PRIMARY">
+    <part>id</part>
+  </key>
+  <comment>Roles del sistema</comment>
+</table>
+
+<!-- Permisos por vista -->
+<table x="460" y="620" name="permission">
+  <row name="id" null="0" autoincrement="1">
+    <datatype>INTEGER</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="code" null="0" autoincrement="0">
+    <datatype>VARCHAR</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="description" null="1" autoincrement="0">
+    <datatype>TEXT</datatype>
+    <default>NULL</default>
+  </row>
+  <key name="PRIMARY" type="PRIMARY">
+    <part>id</part>
+  </key>
+  <comment>Permisos de acceso</comment>
+</table>
+
+<!-- Tabla intermedia usuario-rol N:M -->
+<table x="140" y="860" name="user_role">
+  <row name="id" null="0" autoincrement="1">
+    <datatype>INTEGER</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="user_id" null="0" autoincrement="0">
+    <datatype>INTEGER</datatype>
+    <default>NULL</default>
+    <relation table="user" row="id" />
+  </row>
+  <row name="role_id" null="0" autoincrement="0">
+    <datatype>INTEGER</datatype>
+    <default>NULL</default>
+    <relation table="role" row="id" />
+  </row>
+  <key name="PRIMARY" type="PRIMARY">
+    <part>id</part>
+  </key>
+  <comment>Relacion N:M entre user y role</comment>
+</table>
+
+<!-- Tabla intermedia rol-permiso N:M -->
+<table x="360" y="860" name="role_permission">
+  <row name="id" null="0" autoincrement="1">
+    <datatype>INTEGER</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="role_id" null="0" autoincrement="0">
+    <datatype>INTEGER</datatype>
+    <default>NULL</default>
+    <relation table="role" row="id" />
+  </row>
+  <row name="permission_id" null="0" autoincrement="0">
+    <datatype>INTEGER</datatype>
+    <default>NULL</default>
+    <relation table="permission" row="id" />
+  </row>
+  <key name="PRIMARY" type="PRIMARY">
+    <part>id</part>
+  </key>
+  <comment>Relacion N:M entre role y permission</comment>
+</table>
+
+<!-- Alquiler principal -->
+<table x="620" y="200" name="rental">
+  <row name="id" null="0" autoincrement="1">
+    <datatype>INTEGER</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="customer_id" null="0" autoincrement="0">
+    <datatype>INTEGER</datatype>
+    <default>NULL</default>
+    <relation table="customer" row="id" />
+  </row>
+  <row name="user_id" null="1" autoincrement="0">
+    <datatype>INTEGER</datatype>
+    <default>NULL</default>
+    <relation table="user" row="id" />
+  </row>
+  <row name="status" null="0" autoincrement="0">
+    <datatype>VARCHAR</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="start_date" null="1" autoincrement="0">
+    <datatype>DATE</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="end_date" null="1" autoincrement="0">
+    <datatype>DATE</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="actual_return_date" null="1" autoincrement="0">
+    <datatype>DATE</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="delivery_address" null="1" autoincrement="0">
+    <datatype>TEXT</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="delivery_lat" null="1" autoincrement="0">
+    <datatype>DECIMAL</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="delivery_lng" null="1" autoincrement="0">
+    <datatype>DECIMAL</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="hauling_enabled" null="0" autoincrement="0">
+    <datatype>TINYINT</datatype>
+    <default>0</default>
+  </row>
+  <row name="hauling_cost" null="1" autoincrement="0">
+    <datatype>DECIMAL</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="discount_amount" null="1" autoincrement="0">
+    <datatype>DECIMAL</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="discount_reason" null="1" autoincrement="0">
+    <datatype>TEXT</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="document_type" null="1" autoincrement="0">
+    <datatype>VARCHAR</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="total_amount" null="1" autoincrement="0">
+    <datatype>DECIMAL</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="created_at" null="1" autoincrement="0">
+    <datatype>TIMESTAMP</datatype>
+    <default>NULL</default>
+  </row>
+  <key name="PRIMARY" type="PRIMARY">
+    <part>id</part>
+  </key>
+  <comment>Alquileres con estado y ubicacion</comment>
+</table>
+
+<!-- Detalle N:M rental-product -->
+<table x="480" y="480" name="rental_item">
+  <row name="id" null="0" autoincrement="1">
+    <datatype>INTEGER</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="rental_id" null="0" autoincrement="0">
+    <datatype>INTEGER</datatype>
+    <default>NULL</default>
+    <relation table="rental" row="id" />
+  </row>
+  <row name="product_id" null="0" autoincrement="0">
+    <datatype>INTEGER</datatype>
+    <default>NULL</default>
+    <relation table="product" row="id" />
+  </row>
+  <row name="quantity" null="0" autoincrement="0">
+    <datatype>INTEGER</datatype>
+    <default>1</default>
+  </row>
+  <row name="unit_price" null="0" autoincrement="0">
+    <datatype>DECIMAL</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="estimated_days" null="0" autoincrement="0">
+    <datatype>INTEGER</datatype>
+    <default>NULL</default>
+  </row>
+  <key name="PRIMARY" type="PRIMARY">
+    <part>id</part>
+  </key>
+  <comment>Detalle de productos en alquiler N:M</comment>
+</table>
+
+<!-- Reserva temporal de stock -->
+<table x="320" y="340" name="stock_reservation">
+  <row name="id" null="0" autoincrement="1">
+    <datatype>INTEGER</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="product_id" null="0" autoincrement="0">
+    <datatype>INTEGER</datatype>
+    <default>NULL</default>
+    <relation table="product" row="id" />
+  </row>
+  <row name="rental_id" null="0" autoincrement="0">
+    <datatype>INTEGER</datatype>
+    <default>NULL</default>
+    <relation table="rental" row="id" />
+  </row>
+  <row name="quantity" null="0" autoincrement="0">
+    <datatype>INTEGER</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="expires_at" null="1" autoincrement="0">
+    <datatype>DATETIME</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="created_at" null="1" autoincrement="0">
+    <datatype>DATETIME</datatype>
+    <default>NULL</default>
+  </row>
+  <key name="PRIMARY" type="PRIMARY">
+    <part>id</part>
+  </key>
+  <comment>Reserva temporal de stock FIFO</comment>
+</table>
+
+<!-- Extension de tiempo de alquiler -->
+<table x="860" y="480" name="rental_extension">
+  <row name="id" null="0" autoincrement="1">
+    <datatype>INTEGER</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="rental_id" null="0" autoincrement="0">
+    <datatype>INTEGER</datatype>
+    <default>NULL</default>
+    <relation table="rental" row="id" />
+  </row>
+  <row name="extra_days" null="0" autoincrement="0">
+    <datatype>INTEGER</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="requested_at" null="1" autoincrement="0">
+    <datatype>DATETIME</datatype>
+    <default>NULL</default>
+  </row>
+  <key name="PRIMARY" type="PRIMARY">
+    <part>id</part>
+  </key>
+  <comment>Extensiones de tiempo del alquiler</comment>
+</table>
+
+<!-- Pagos y abonos -->
+<table x="920" y="200" name="payment">
+  <row name="id" null="0" autoincrement="1">
+    <datatype>INTEGER</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="rental_id" null="0" autoincrement="0">
+    <datatype>INTEGER</datatype>
+    <default>NULL</default>
+    <relation table="rental" row="id" />
+  </row>
+  <row name="payment_type" null="0" autoincrement="0">
+    <datatype>VARCHAR</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="amount" null="0" autoincrement="0">
+    <datatype>DECIMAL</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="status" null="0" autoincrement="0">
+    <datatype>VARCHAR</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="reference" null="1" autoincrement="0">
+    <datatype>VARCHAR</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="paid_at" null="1" autoincrement="0">
+    <datatype>DATETIME</datatype>
+    <default>NULL</default>
+  </row>
+  <key name="PRIMARY" type="PRIMARY">
+    <part>id</part>
+  </key>
+  <comment>Pagos efectivo QR abonos y pendientes</comment>
+</table>
+
+<!-- Documentos PDF generados -->
+<table x="920" y="40" name="generated_document">
+  <row name="id" null="0" autoincrement="1">
+    <datatype>INTEGER</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="rental_id" null="0" autoincrement="0">
+    <datatype>INTEGER</datatype>
+    <default>NULL</default>
+    <relation table="rental" row="id" />
+  </row>
+  <row name="document_type" null="0" autoincrement="0">
+    <datatype>VARCHAR</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="serial_number" null="1" autoincrement="0">
+    <datatype>VARCHAR</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="file_path" null="1" autoincrement="0">
+    <datatype>VARCHAR</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="generated_at" null="1" autoincrement="0">
+    <datatype>DATETIME</datatype>
+    <default>NULL</default>
+  </row>
+  <key name="PRIMARY" type="PRIMARY">
+    <part>id</part>
+  </key>
+  <comment>Contratos remisiones devoluciones y facturas PDF</comment>
+</table>
+
+<!-- Devoluciones con incidencia -->
+<table x="620" y="560" name="return_incident">
+  <row name="id" null="0" autoincrement="1">
+    <datatype>INTEGER</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="rental_id" null="0" autoincrement="0">
+    <datatype>INTEGER</datatype>
+    <default>NULL</default>
+    <relation table="rental" row="id" />
+  </row>
+  <row name="reason" null="0" autoincrement="0">
+    <datatype>VARCHAR</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="description" null="1" autoincrement="0">
+    <datatype>TEXT</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="reported_at" null="1" autoincrement="0">
+    <datatype>DATETIME</datatype>
+    <default>NULL</default>
+  </row>
+  <key name="PRIMARY" type="PRIMARY">
+    <part>id</part>
+  </key>
+  <comment>Devoluciones por dano o inconformidad</comment>
+</table>
+
+<!-- Deudas pendientes -->
+<table x="40" y="480" name="debt">
+  <row name="id" null="0" autoincrement="1">
+    <datatype>INTEGER</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="customer_id" null="0" autoincrement="0">
+    <datatype>INTEGER</datatype>
+    <default>NULL</default>
+    <relation table="customer" row="id" />
+  </row>
+  <row name="rental_id" null="1" autoincrement="0">
+    <datatype>INTEGER</datatype>
+    <default>NULL</default>
+    <relation table="rental" row="id" />
+  </row>
+  <row name="balance" null="0" autoincrement="0">
+    <datatype>DECIMAL</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="due_date" null="1" autoincrement="0">
+    <datatype>DATE</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="overdue_days" null="1" autoincrement="0">
+    <datatype>INTEGER</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="status" null="0" autoincrement="0">
+    <datatype>VARCHAR</datatype>
+    <default>NULL</default>
+  </row>
+  <key name="PRIMARY" type="PRIMARY">
+    <part>id</part>
+  </key>
+  <comment>Deudas pendientes del cliente</comment>
+</table>
+
+<!-- Ingresos y gastos -->
+<table x="40" y="1060" name="financial_movement">
+  <row name="id" null="0" autoincrement="1">
+    <datatype>INTEGER</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="movement_type" null="0" autoincrement="0">
+    <datatype>VARCHAR</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="amount" null="0" autoincrement="0">
+    <datatype>DECIMAL</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="description" null="1" autoincrement="0">
+    <datatype>TEXT</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="category" null="1" autoincrement="0">
+    <datatype>VARCHAR</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="movement_date" null="0" autoincrement="0">
+    <datatype>DATE</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="user_id" null="1" autoincrement="0">
+    <datatype>INTEGER</datatype>
+    <default>NULL</default>
+    <relation table="user" row="id" />
+  </row>
+  <key name="PRIMARY" type="PRIMARY">
+    <part>id</part>
+  </key>
+  <comment>Ingresos y gastos de la empresa</comment>
+</table>
+
+<!-- Cola de notificaciones WhatsApp -->
+<table x="620" y="760" name="notification">
+  <row name="id" null="0" autoincrement="1">
+    <datatype>INTEGER</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="rental_id" null="1" autoincrement="0">
+    <datatype>INTEGER</datatype>
+    <default>NULL</default>
+    <relation table="rental" row="id" />
+  </row>
+  <row name="customer_id" null="1" autoincrement="0">
+    <datatype>INTEGER</datatype>
+    <default>NULL</default>
+    <relation table="customer" row="id" />
+  </row>
+  <row name="channel" null="0" autoincrement="0">
+    <datatype>VARCHAR</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="message" null="1" autoincrement="0">
+    <datatype>TEXT</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="status" null="0" autoincrement="0">
+    <datatype>VARCHAR</datatype>
+    <default>NULL</default>
+  </row>
+  <row name="sent_at" null="1" autoincrement="0">
+    <datatype>DATETIME</datatype>
+    <default>NULL</default>
+  </row>
+  <key name="PRIMARY" type="PRIMARY">
+    <part>id</part>
+  </key>
+  <comment>Cola de notificaciones WhatsApp</comment>
+</table>
+
+</sql>
