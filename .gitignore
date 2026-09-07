@@ -73,3 +73,11 @@ docs/*.only
 docs/*.txt
 !docs/INTEGRACIONES.md
 !docs/schema-hyeda-v2.sql
+
+# Business operational spreadsheets (keep local only)
+docs/*.xlsx
+docs/*PRECIOS*
+docs/cdp*.json
+docs/hyeda_payload.json
+docs/load_*
+docs/image.png
