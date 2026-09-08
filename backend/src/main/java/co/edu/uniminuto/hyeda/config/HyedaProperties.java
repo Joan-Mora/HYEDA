@@ -18,6 +18,8 @@ public class HyedaProperties {
     private BackgroundCheck backgroundCheck = new BackgroundCheck();
     private int stockReservationMinutes = 30;
     private DailyReport dailyReport = new DailyReport();
+    /** Comma-separated CORS origin patterns, e.g. https://hyeda-web.onrender.com,http://localhost:* */
+    private String corsOrigins = "http://localhost:*,http://127.0.0.1:*";
 
     @Data
     public static class Jwt {

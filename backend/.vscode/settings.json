@@ -1,0 +1,11 @@
+{
+  "java.configuration.updateBuildConfiguration": "automatic",
+  "java.import.maven.enabled": true,
+  "java.compile.nullAnalysis.mode": "automatic",
+  "files.exclude": {
+    "**/.git": true,
+    "**/node_modules": true
+  },
+  "java.project.referencedLibraries": [],
+  "java.jdt.ls.lombokSupport.enabled": true
+}

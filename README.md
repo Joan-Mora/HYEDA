@@ -76,6 +76,55 @@ Pensado para operación real en mostrador: pocos clics, drawer de gestión, ataj
 
 ---
 
+---
+
+## Despliegue en Render (plan Free)
+
+Hay Dockerfiles listos y un Blueprint `render.yaml`.
+
+| Servicio | Dockerfile | Rol |
+| --- | --- | --- |
+| `hyeda-api` | [`backend/Dockerfile`](backend/Dockerfile) | Spring Boot + Postgres |
+| `hyeda-web` | [`frontend/Dockerfile`](frontend/Dockerfile) | Nginx sirviendo el build Vite |
+| `hyeda-db` | — | PostgreSQL Free |
+
+### Opción A — Blueprint
+1. En Render: **New → Blueprint** → repo `Joan-Mora/HYEDA`.
+2. Define `HYEDA_ADMIN_PASS` y `HYEDA_CORS_ORIGINS` (URL del front, p. ej. `https://hyeda-web.onrender.com`).
+3. Ajusta `dockerBuildArgs.VITE_API_URL` en `render.yaml` a la URL real del API (`https://hyeda-api.onrender.com/api`) y **redeploy** el front.
+
+### Opción B — Manual
+1. Crea **PostgreSQL** Free.
+2. **Web Service** Docker → Root/Context `backend`, Dockerfile `backend/Dockerfile`.
+   - Env: `SPRING_PROFILES_ACTIVE=postgres`, datasource (o `DATABASE_URL`), `HYEDA_JWT_SECRET`, `HYEDA_CORS_ORIGINS`, admin.
+3. **Web Service** Docker → Context `frontend`, Dockerfile `frontend/Dockerfile`.
+   - Build arg: `VITE_API_URL=https://TU-API.onrender.com/api`
+
+### Local con Docker
+
+```bash
+# API (necesita Postgres accesible y env)
+cd backend
+docker build -t hyeda-api .
+docker run --rm -p 8081:8081 \
+  -e PORT=8081 \
+  -e SPRING_PROFILES_ACTIVE=postgres \
+  -e SPRING_DATASOURCE_URL=jdbc:postgresql://host.docker.internal:5432/hyeda \
+  -e SPRING_DATASOURCE_USERNAME=postgres \
+  -e SPRING_DATASOURCE_PASSWORD=postgres \
+  -e HYEDA_CORS_ORIGINS=http://localhost:* \
+  hyeda-api
+
+# Front
+cd frontend
+docker build --build-arg VITE_API_URL=http://localhost:8081/api -t hyeda-web .
+docker run --rm -p 8080:80 hyeda-web
+```
+
+> Free: el Web Service se duerme con inactividad; `storage/` de PDFs es efímero.
+
+---
+
 ## Estructura del repositorio
 
 ```text

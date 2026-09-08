@@ -9,6 +9,15 @@ Formato inspirado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/)
 
 ---
 
+## [1.1.0] — 2026-09-07
+
+### Añadido
+- Dockerfiles multi-stage para backend (Java 26) y frontend (Nginx) orientados a **Render Free**.
+- `render.yaml` Blueprint (API + web + Postgres).
+- Soporte `PORT`, CORS configurable (`HYEDA_CORS_ORIGINS`) y conversión automática `postgres://` → JDBC.
+
+---
+
 ## [1.0.0] — 2026-09-07
 
 Primera entrega pública del producto como **centro de control del patio**.

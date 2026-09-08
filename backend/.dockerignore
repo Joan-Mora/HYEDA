@@ -1,0 +1,12 @@
+target/
+.git/
+.idea/
+*.iml
+data/
+storage/
+*.db
+*.log
+.env
+.env.*
+.DS_Store
+src/test/

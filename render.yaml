@@ -1,0 +1,58 @@
+# Render Free blueprint — HYEDA
+# Docs: https://render.com/docs/blueprint-spec
+# 1) Create a PostgreSQL DB in the dashboard (or uncomment databases below)
+# 2) Connect this Blueprint from the HYEDA GitHub repo root
+# 3) Set secrets / sync frontend VITE_API_URL after the API URL is known
+
+databases:
+  - name: hyeda-db
+    plan: free
+    databaseName: hyeda
+    user: hyeda
+
+services:
+  - type: web
+    name: hyeda-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    healthCheckPath: /api/auth/health
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: postgres
+      - key: SPRING_DATASOURCE_URL
+        fromDatabase:
+          name: hyeda-db
+          property: connectionString
+      - key: SPRING_DATASOURCE_USERNAME
+        fromDatabase:
+          name: hyeda-db
+          property: user
+      - key: SPRING_DATASOURCE_PASSWORD
+        fromDatabase:
+          name: hyeda-db
+          property: password
+      - key: HYEDA_JWT_SECRET
+        generateValue: true
+      - key: HYEDA_ADMIN_USER
+        value: admin
+      - key: HYEDA_ADMIN_PASS
+        sync: false
+      - key: HYEDA_CORS_ORIGINS
+        sync: false
+      - key: HYEDA_STORAGE
+        value: /app/storage
+
+  - type: web
+    name: hyeda-web
+    runtime: docker
+    plan: free
+    dockerfilePath: ./frontend/Dockerfile
+    dockerContext: ./frontend
+    # Set after API is live, e.g. https://hyeda-api.onrender.com/api
+    dockerBuildArgs:
+      VITE_API_URL: https://hyeda-api.onrender.com/api
+    envVars:
+      - key: VITE_API_URL
+        value: https://hyeda-api.onrender.com/api
