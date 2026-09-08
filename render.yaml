@@ -50,9 +50,8 @@ services:
     plan: free
     dockerfilePath: ./frontend/Dockerfile
     dockerContext: ./frontend
-    # Set after API is live, e.g. https://hyeda-api.onrender.com/api
-    dockerBuildArgs:
-      VITE_API_URL: https://hyeda-api.onrender.com/api
+    # Render pasa envVars como Docker build-args (ARG VITE_API_URL en el Dockerfile).
+    # Ajusta la URL tras el primer deploy del API si el hostname difiere.
     envVars:
       - key: VITE_API_URL
         value: https://hyeda-api.onrender.com/api
