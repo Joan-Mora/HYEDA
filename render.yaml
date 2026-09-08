@@ -2,11 +2,13 @@
 # Docs: https://render.com/docs/blueprint-spec
 #
 # Free plan: solo 1 PostgreSQL activo. Este Blueprint NO crea DB nueva.
-# Usa la Postgres Free que ya tienes en el dashboard y pega sus credenciales
-# en las envVars con sync: false al aplicar el Blueprint.
+# Usa la Postgres Free que ya tienes en el dashboard.
 #
-# Internal Database URL (Render) → SPRING_DATASOURCE_URL
-# (acepta postgres://...; el backend lo convierte a jdbc:postgresql://)
+# IMPORTANTE — SPRING_DATASOURCE_URL:
+# Usa la External Database URL (host tipo dpg-xxx-a.REGION-postgres.render.com),
+# NO la Internal (host corto dpg-xxx-a). El host interno falla con
+# UnknownHostException si API y DB no están en la misma región / red privada.
+# El backend convierte postgres:// → jdbc:postgresql:// y añade sslmode=require.
 
 services:
   - type: web
@@ -19,7 +21,7 @@ services:
     envVars:
       - key: SPRING_PROFILES_ACTIVE
         value: postgres
-      # Pega Internal Database URL de tu Postgres Free existente
+      # External Database URL completa (Connect → External)
       - key: SPRING_DATASOURCE_URL
         sync: false
       - key: SPRING_DATASOURCE_USERNAME

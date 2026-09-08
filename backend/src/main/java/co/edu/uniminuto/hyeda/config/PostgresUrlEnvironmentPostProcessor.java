@@ -8,7 +8,6 @@ import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.util.StringUtils;
 
-import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -27,35 +26,23 @@ public class PostgresUrlEnvironmentPostProcessor implements EnvironmentPostProce
         if (!StringUtils.hasText(raw)) {
             return;
         }
-        if (!raw.startsWith("postgres://") && !raw.startsWith("postgresql://")) {
+        if (!raw.startsWith("postgres://") && !raw.startsWith("postgresql://") && !raw.startsWith("jdbc:postgresql://")) {
             return;
         }
 
         try {
-            String normalized = raw.startsWith("postgres://")
-                    ? "postgresql://" + raw.substring("postgres://".length())
-                    : raw;
-            URI uri = URI.create(normalized);
-            String host = uri.getHost();
-            int port = uri.getPort() > 0 ? uri.getPort() : 5432;
-            String path = uri.getPath() == null || uri.getPath().isBlank() ? "/hyeda" : uri.getPath();
-            String jdbc = "jdbc:postgresql://" + host + ":" + port + path;
-            if (StringUtils.hasText(uri.getQuery())) {
-                jdbc = jdbc + "?" + uri.getQuery();
-            }
-
+            RenderJdbcUrls.Parsed parsed = RenderJdbcUrls.parse(raw);
             Map<String, Object> map = new HashMap<>();
-            map.put("spring.datasource.url", jdbc);
+            map.put("spring.datasource.url", parsed.jdbcUrl());
             map.put("spring.datasource.driver-class-name", "org.postgresql.Driver");
 
-            if (uri.getUserInfo() != null) {
-                String[] parts = uri.getUserInfo().split(":", 2);
-                if (!StringUtils.hasText(environment.getProperty("spring.datasource.username"))) {
-                    map.put("spring.datasource.username", parts[0]);
-                }
-                if (parts.length > 1 && !StringUtils.hasText(environment.getProperty("spring.datasource.password"))) {
-                    map.put("spring.datasource.password", parts[1]);
-                }
+            if (StringUtils.hasText(parsed.username())
+                    && !StringUtils.hasText(environment.getProperty("spring.datasource.username"))) {
+                map.put("spring.datasource.username", parsed.username());
+            }
+            if (StringUtils.hasText(parsed.password())
+                    && !StringUtils.hasText(environment.getProperty("spring.datasource.password"))) {
+                map.put("spring.datasource.password", parsed.password());
             }
 
             environment.getPropertySources().addFirst(new MapPropertySource("renderPostgresJdbc", map));
