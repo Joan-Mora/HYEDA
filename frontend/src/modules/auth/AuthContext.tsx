@@ -1,58 +1,47 @@
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useMemo,
-  useState,
-  type ReactNode,
-} from 'react'
-import {
-  getUser,
-  isAuthenticated as checkAuth,
-  login as authLogin,
-  logout as authLogout,
-} from '../../services/auth'
-import type { User } from '../../types'
+import { createContext, useContext, useMemo, useState, type ReactNode } from 'react'
+import { api, clearSession, getStoredUser, persistSession } from '../../services/api'
+import type { SessionResponse, UserProfile } from '../../types/api'
+import { hasPermission } from '../../lib/permissions'
 
-interface AuthContextValue {
-  user: User | null
-  isAuthenticated: boolean
-  login: (username: string, password: string) => Promise<void>
-  logout: () => void
+type AuthContextValue = {
+  user: UserProfile | null
+  login: (username: string, password: string) => Promise<UserProfile>
+  logout: () => Promise<void>
+  can: (permission: string) => boolean
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(() => getUser())
+  const [user, setUser] = useState<UserProfile | null>(() => getStoredUser())
 
-  const login = useCallback(async (username: string, password: string) => {
-    const next = await authLogin(username, password)
-    setUser(next)
-  }, [])
-
-  const logout = useCallback(() => {
-    authLogout()
-    setUser(null)
-  }, [])
-
-  const value = useMemo(
-    () => ({
-      user,
-      isAuthenticated: Boolean(user) || checkAuth(),
-      login,
-      logout,
-    }),
-    [user, login, logout],
-  )
+  const value = useMemo<AuthContextValue>(() => ({
+    user,
+    async login(username, password) {
+      const { data } = await api.post<SessionResponse>('/auth/login', { username, password })
+      persistSession(data)
+      setUser(data.user)
+      return data.user
+    },
+    async logout() {
+      try {
+        await api.post('/auth/logout', { refreshToken: localStorage.getItem('hyeda_refresh') })
+      } catch {
+        // El cierre local importa mas que el del servidor.
+      }
+      clearSession()
+      setUser(null)
+    },
+    can(permission) {
+      return hasPermission(user?.permissions, permission)
+    },
+  }), [user])
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
-export function useAuth(): AuthContextValue {
+export function useAuth() {
   const ctx = useContext(AuthContext)
-  if (!ctx) {
-    throw new Error('useAuth debe usarse dentro de AuthProvider')
-  }
+  if (!ctx) throw new Error('AuthProvider requerido')
   return ctx
 }

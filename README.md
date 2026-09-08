@@ -58,21 +58,23 @@ Pensado para operación real en mostrador: pocos clics, drawer de gestión, ataj
 - Spring Web, Data JPA, Security, Validation
 - **JWT** (jjwt) · roles y permisos (RBAC)
 - **MapStruct** · Lombok
-- Persistencia: **H2** (dev) / **PostgreSQL** (prod)
-- PDF: OpenHTMLToPDF · Excel: Apache POI
-- Adaptadores mock/reales: WhatsApp, Maps, antecedentes
+- Persistencia: **H2** (dev) / **PostgreSQL** (prod) · **Flyway**
+- JWT con access + refresh · RBAC por permiso
+- PDF: Thymeleaf + OpenHTMLToPDF · Excel/CSV: Apache POI + Commons CSV
+- Adaptadores: WhatsApp, Wompi, Maps, antecedentes
 
 ### Frontend (`frontend/`)
 - **React 19** · **TypeScript** · **Vite 8**
 - **TanStack Query** · React Router 7 · Axios
-- **Tailwind CSS 4** · **Framer Motion**
-- **Recharts** (pulso de ingresos)
+- **React Hook Form** + **Zod**
+- **Tailwind CSS 4** · **Recharts**
 
 ### Documentación
 - [ARCHITECTURE.md](ARCHITECTURE.md) — módulos y flujos
 - [SECURITY.md](SECURITY.md) — autenticación, secretos y buenas prácticas
 - [CHANGELOG.md](CHANGELOG.md) — historial de versiones
 - [docs/INTEGRACIONES.md](docs/INTEGRACIONES.md) — WhatsApp, Wompi, Maps, antecedentes
+- [docs/DESPLIEGUE.md](docs/DESPLIEGUE.md) — guia de despliegue
 
 ---
 

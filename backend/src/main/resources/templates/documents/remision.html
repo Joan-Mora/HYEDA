@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8"/>
+    <title th:text="'Remision ' + ${serial}">Remision de Equipos</title>
+    <style th:replace="~{documents/_fragments :: styles}"></style>
+</head>
+<body>
+
+<div th:replace="~{documents/_fragments :: letterhead('Remision de Equipos', ${serial}, ${issuedDate})}"></div>
+
+<table class="fields" style="margin-top: 8pt;">
+    <tr>
+        <td class="label">Ciudad</td>
+        <td class="value" th:text="${company.city}">Granada, Meta</td>
+        <td class="label">Fecha de salida</td>
+        <td class="value" th:text="${startDateLabel}">01/01/2026</td>
+    </tr>
+    <tr>
+        <td class="label">Nombre</td>
+        <td class="value" th:text="${customer.name}">Nombre del cliente</td>
+        <td class="label">C.C. / NIT</td>
+        <td class="value" th:text="${customer.documentType} + ' ' + ${customer.document}">CC 1.000.000</td>
+    </tr>
+    <tr>
+        <td class="label">Direccion de entrega</td>
+        <td class="value" colspan="3" th:text="${rental.deliveryAddress}">Calle 1 # 2-3</td>
+    </tr>
+    <tr>
+        <td class="label">Telefono</td>
+        <td class="value" th:text="${customer.phone} ?: 'No registrado'">320 000 0000</td>
+        <td class="label">Fecha pactada de recogida</td>
+        <td class="value" th:text="${endDateLabel}">11/01/2026</td>
+    </tr>
+    <tr>
+        <td class="label">Alquiler</td>
+        <td class="value" th:text="${rental.code}">ALQ-2026-00001</td>
+        <td class="label">Transporte</td>
+        <td class="value" th:text="${rental.haulingEnabled} ? 'Llevada por la empresa' : 'Recoge el cliente'">
+            Recoge el cliente</td>
+    </tr>
+</table>
+
+<h2 class="section">Elementos entregados</h2>
+<table class="grid">
+    <thead>
+    <tr>
+        <th style="width: 48%;">Elemento</th>
+        <th class="center" style="width: 12%;">Numero</th>
+        <th style="width: 26%;">Letras</th>
+        <th class="num" style="width: 14%;">Vr. dia</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="item : ${items}">
+        <td th:text="${item.productName}">Andamio tubular</td>
+        <td class="center" th:text="${item.quantity}">2</td>
+        <td th:text="${item.quantityInWords}">Dos</td>
+        <td class="num" th:text="${item.unitPriceLabel}">$ 10.000</td>
+    </tr>
+    </tbody>
+</table>
+
+<table class="totals">
+    <tr>
+        <td class="k">Plazo pactado</td>
+        <td class="v" th:text="${rental.estimatedDays} + ' dias'">10 dias</td>
+    </tr>
+    <tr th:if="${rental.haulingEnabled}">
+        <td class="k">Transporte</td>
+        <td class="v" th:text="${haulingLabel}">$ 30.000</td>
+    </tr>
+    <tr class="grand">
+        <td class="k">TOTAL ESTIMADO</td>
+        <td class="v" th:text="${totalLabel}">$ 220.000</td>
+    </tr>
+</table>
+
+<div class="notice">
+    <strong>Nota.</strong> El equipo sera entregado y recogido hasta el sitio donde tenga acceso el camion.
+    El valor definitivo se liquida al momento de la devolucion. Pasada la fecha pactada de recogida se cobra
+    recargo diario por mora. <strong>Avise la fecha de recogida con anticipacion.</strong>
+</div>
+
+<div style="margin-top: 8pt; font-size: 7.5pt;">
+    Esta remision se emite bajo la modalidad de cliente de confianza. El material relacionado queda bajo
+    custodia y responsabilidad del receptor hasta su devolucion, documentada en el acta correspondiente.
+</div>
+
+<div th:replace="~{documents/_fragments :: signatures(${signatureDataUri})}"></div>
+
+<div th:replace="~{documents/_fragments :: footer(${verifyUrl}, ${qrDataUri})}"></div>
+
+</body>
+</html>

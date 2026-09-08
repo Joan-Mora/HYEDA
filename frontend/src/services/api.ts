@@ -1,48 +1,76 @@
-import axios from 'axios'
+import axios, { type InternalAxiosRequestConfig } from 'axios'
+import type { SessionResponse } from '../types/api'
 
-const api = axios.create({
+const ACCESS = 'hyeda_access'
+const REFRESH = 'hyeda_refresh'
+const USER = 'hyeda_user'
+
+export const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8081/api',
-  headers: {
-    'Content-Type': 'application/json',
-  },
 })
 
+export function getAccessToken() {
+  return localStorage.getItem(ACCESS)
+}
+
+export function getStoredUser() {
+  const raw = localStorage.getItem(USER)
+  return raw ? (JSON.parse(raw) as SessionResponse['user']) : null
+}
+
+export function persistSession(session: SessionResponse) {
+  localStorage.setItem(ACCESS, session.accessToken)
+  localStorage.setItem(REFRESH, session.refreshToken)
+  localStorage.setItem(USER, JSON.stringify(session.user))
+}
+
+export function clearSession() {
+  localStorage.removeItem(ACCESS)
+  localStorage.removeItem(REFRESH)
+  localStorage.removeItem(USER)
+}
+
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('hyeda_token')
+  const token = getAccessToken()
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
   }
   return config
 })
 
+let refreshing: Promise<string | null> | null = null
+
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('hyeda_token')
-      localStorage.removeItem('hyeda_user')
-      if (!window.location.pathname.includes('/login')) {
-        window.location.href = '/login'
-      }
+  async (error) => {
+    const original = error.config as InternalAxiosRequestConfig & { _retry?: boolean }
+    if (error.response?.status !== 401 || original._retry || original.url?.includes('/auth/')) {
+      return Promise.reject(error)
     }
-    return Promise.reject(error)
+    original._retry = true
+    if (!refreshing) {
+      const refreshToken = localStorage.getItem(REFRESH)
+      refreshing = refreshToken
+        ? api.post<SessionResponse>('/auth/refresh', { refreshToken })
+            .then((res) => {
+              persistSession(res.data)
+              return res.data.accessToken
+            })
+            .catch(() => {
+              clearSession()
+              if (!window.location.pathname.startsWith('/login')) {
+                window.location.assign('/login')
+              }
+              return null
+            })
+            .finally(() => {
+              refreshing = null
+            })
+        : Promise.resolve(null)
+    }
+    const token = await refreshing
+    if (!token) return Promise.reject(error)
+    original.headers.Authorization = `Bearer ${token}`
+    return api(original)
   },
 )
-
-export function getErrorMessage(error: unknown, fallback = 'Ocurrió un error'): string {
-  if (axios.isAxiosError(error)) {
-    const data = error.response?.data as
-      | { message?: string; error?: string; detail?: string }
-      | string
-      | undefined
-    if (typeof data === 'string' && data.trim()) return data
-    if (data && typeof data === 'object') {
-      return data.message || data.error || data.detail || fallback
-    }
-    if (error.message) return error.message
-  }
-  if (error instanceof Error) return error.message
-  return fallback
-}
-
-export default api

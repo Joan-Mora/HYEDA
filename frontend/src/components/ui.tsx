@@ -1,77 +1,29 @@
-import type { ButtonHTMLAttributes, PropsWithChildren, ReactNode } from 'react'
-import { Link } from 'react-router-dom'
+import { useRef, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react'
 
-export function PageHeader({
-  title,
-  subtitle,
-  eyebrow,
-  actions,
-}: {
+export function PageHeader({ eyebrow, title, subtitle, action }: {
+  eyebrow?: string
   title: string
   subtitle?: string
-  eyebrow?: string
-  actions?: ReactNode
+  action?: ReactNode
 }) {
   return (
-    <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between mb-6">
+    <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
       <div>
-        {eyebrow && (
-          <p className="text-[0.65rem] font-bold uppercase tracking-[0.16em] text-[var(--accent)] mb-1">
-            {eyebrow}
-          </p>
-        )}
-        <h1 className="font-display text-3xl md:text-4xl text-[var(--navy)] uppercase tracking-wide leading-none">
-          {title}
-        </h1>
-        {subtitle && <p className="mt-2 text-sm text-[var(--text-muted)] max-w-2xl leading-relaxed">{subtitle}</p>}
+        {eyebrow && <p className="text-xs font-semibold uppercase tracking-[0.16em] text-accent">{eyebrow}</p>}
+        <h1 className="font-display text-3xl text-navy">{title}</h1>
+        {subtitle && <p className="mt-1 max-w-2xl text-sm text-steel-muted">{subtitle}</p>}
       </div>
-      {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
-    </header>
-  )
-}
-
-export function ModuleTabs({
-  tabs,
-  value,
-  onChange,
-}: {
-  tabs: { id: string; label: string }[]
-  value: string
-  onChange: (id: string) => void
-}) {
-  return (
-    <div className="module-tabs" role="tablist">
-      {tabs.map((t) => (
-        <button
-          key={t.id}
-          type="button"
-          role="tab"
-          aria-selected={value === t.id}
-          className={['module-tab', value === t.id ? 'module-tab-active' : ''].join(' ')}
-          onClick={() => onChange(t.id)}
-        >
-          {t.label}
-        </button>
-      ))}
+      {action}
     </div>
   )
 }
 
-export function Panel({
-  children,
-  className = '',
-  title,
-  action,
-}: PropsWithChildren<{ className?: string; title?: string; action?: ReactNode }>) {
+export function Panel({ title, action, children }: { title?: string; action?: ReactNode; children: ReactNode }) {
   return (
-    <section className={`panel overflow-hidden ${className}`}>
+    <section className="rounded-[10px] border border-slate-200 bg-white p-4 shadow-sm">
       {(title || action) && (
-        <div className="flex items-center justify-between gap-3 px-5 py-3.5 border-b border-[var(--border)]">
-          {title ? (
-            <h2 className="font-display text-lg text-[var(--navy)] uppercase tracking-wide">{title}</h2>
-          ) : (
-            <span />
-          )}
+        <div className="mb-3 flex items-center justify-between gap-3">
+          {title && <h2 className="font-display text-lg text-navy">{title}</h2>}
           {action}
         </div>
       )}
@@ -80,149 +32,194 @@ export function Panel({
   )
 }
 
-export function KpiCard({
-  label,
-  value,
-  hint,
-  accent = false,
-}: {
-  label: string
-  value: string
-  hint?: string
-  accent?: boolean
-}) {
+export function KpiCard({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
-    <div className="panel p-5 relative overflow-hidden">
-      <div
-        className="absolute left-0 top-0 bottom-0 w-1"
-        style={{ background: accent ? 'var(--accent)' : 'var(--navy)' }}
-      />
-      <div className="text-xs uppercase tracking-wider text-[var(--text-muted)] font-semibold pl-2">
-        {label}
-      </div>
-      <div
-        className="mt-2 pl-2 font-display text-3xl"
-        style={{ color: accent ? 'var(--accent)' : 'var(--navy)' }}
-      >
-        {value}
-      </div>
-      {hint && <div className="mt-1 pl-2 text-xs text-[var(--text-muted)]">{hint}</div>}
+    <div className="rounded-[10px] border border-slate-200 bg-white p-4 shadow-sm">
+      <p className="text-xs uppercase tracking-wide text-steel-muted">{label}</p>
+      <p className="mt-1 font-display text-2xl text-navy">{value}</p>
+      {hint && <p className="mt-1 text-xs text-steel-muted">{hint}</p>}
     </div>
   )
 }
 
-type BtnProps = ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: 'primary' | 'navy' | 'ghost'
-}
-
-export function Button({ variant = 'primary', className = '', children, ...rest }: BtnProps) {
-  const v =
-    variant === 'primary' ? 'btn-primary' : variant === 'navy' ? 'btn-navy' : 'btn-ghost'
+export function Button({ variant = 'primary', loading, className = '', children, ...props }: {
+  variant?: 'primary' | 'navy' | 'ghost' | 'danger'
+  loading?: boolean
+  className?: string
+  children: ReactNode
+} & React.ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
-    <button type="button" className={`btn ${v} ${className}`} {...rest}>
-      {children}
+    <button className={`btn btn-${variant} ${className}`} disabled={loading || props.disabled} {...props}>
+      {loading ? 'Espera…' : children}
     </button>
   )
 }
 
-export function ButtonLink({
-  to,
-  children,
-  variant = 'primary',
-  className = '',
-}: {
-  to: string
-  children: ReactNode
-  variant?: 'primary' | 'navy' | 'ghost'
-  className?: string
-}) {
-  const v =
-    variant === 'primary' ? 'btn-primary' : variant === 'navy' ? 'btn-navy' : 'btn-ghost'
+export function Field({ label, error, children }: { label: string; error?: string; children: ReactNode }) {
   return (
-    <Link to={to} className={`btn ${v} ${className}`}>
+    <label className="block text-sm">
+      <span className="mb-1 block font-medium text-navy">{label}</span>
       {children}
-    </Link>
+      {error && <span className="mt-1 block text-xs text-red-700">{error}</span>}
+    </label>
   )
 }
 
-export function Badge({
-  children,
-  tone = 'navy',
-}: PropsWithChildren<{ tone?: 'navy' | 'accent' | 'success' | 'danger' | 'muted' }>) {
-  const colors = {
-    navy: { bg: 'rgba(27,31,76,0.08)', color: 'var(--navy)' },
-    accent: { bg: 'var(--accent-soft)', color: 'var(--accent)' },
-    success: { bg: 'rgba(46,125,50,0.12)', color: 'var(--success)' },
-    danger: { bg: 'rgba(198,40,40,0.12)', color: 'var(--danger)' },
-    muted: { bg: 'var(--bone)', color: 'var(--steel-muted)' },
-  }[tone]
+export function Input({ label, error, ...props }: { label: string; error?: string } & InputHTMLAttributes<HTMLInputElement>) {
   return (
-    <span
-      className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-semibold"
-      style={{ background: colors.bg, color: colors.color }}
+    <Field label={label} error={error}>
+      <input className="field" aria-invalid={Boolean(error)} {...props} />
+    </Field>
+  )
+}
+
+export function Select({ label, error, children, ...props }: { label: string; error?: string; children: ReactNode } & SelectHTMLAttributes<HTMLSelectElement>) {
+  return (
+    <Field label={label} error={error}>
+      <select className="field" aria-invalid={Boolean(error)} {...props}>{children}</select>
+    </Field>
+  )
+}
+
+export function Textarea({ label, error, ...props }: { label: string; error?: string } & TextareaHTMLAttributes<HTMLTextAreaElement>) {
+  return (
+    <Field label={label} error={error}>
+      <textarea className="field min-h-24" aria-invalid={Boolean(error)} {...props} />
+    </Field>
+  )
+}
+
+export function DatePicker(props: { label: string; error?: string } & InputHTMLAttributes<HTMLInputElement>) {
+  return <Input type="date" {...props} />
+}
+
+export function Badge({ tone = 'navy', children }: { tone?: 'navy' | 'accent' | 'success' | 'danger' | 'muted'; children: ReactNode }) {
+  const tones = {
+    navy: 'bg-navy/10 text-navy',
+    accent: 'bg-orange-100 text-accent',
+    success: 'bg-emerald-100 text-emerald-800',
+    danger: 'bg-red-100 text-red-800',
+    muted: 'bg-slate-100 text-slate-600',
+  }
+  return <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${tones[tone]}`}>{children}</span>
+}
+
+export function EmptyState({ title, action }: { title: string; action?: ReactNode }) {
+  return (
+    <div className="py-10 text-center text-sm text-steel-muted">
+      <p>{title}</p>
+      {action && <div className="mt-3">{action}</div>}
+    </div>
+  )
+}
+
+export function Modal({ open, title, onClose, children }: { open: boolean; title: string; onClose: () => void; children: ReactNode }) {
+  if (!open) return null
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy/40 p-4" onClick={onClose}>
+      <div className="max-h-[90vh] w-full max-w-2xl overflow-auto rounded-[10px] bg-white p-5 shadow-xl" onClick={(e) => e.stopPropagation()}>
+        <div className="mb-4 flex items-center justify-between">
+          <h3 className="font-display text-xl text-navy">{title}</h3>
+          <button className="btn btn-ghost" onClick={onClose}>Cerrar</button>
+        </div>
+        {children}
+      </div>
+    </div>
+  )
+}
+
+export function Drawer({ open, title, onClose, children }: { open: boolean; title: string; onClose: () => void; children: ReactNode }) {
+  if (!open) return null
+  return (
+    <div className="fixed inset-0 z-40 flex justify-end bg-navy/30" onClick={onClose}>
+      <aside className="h-full w-full max-w-xl overflow-auto bg-white p-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <div className="mb-4 flex items-center justify-between">
+          <h3 className="font-display text-xl text-navy">{title}</h3>
+          <button className="btn btn-ghost" onClick={onClose}>Cerrar</button>
+        </div>
+        {children}
+      </aside>
+    </div>
+  )
+}
+
+export function Stepper({ steps, current }: { steps: string[]; current: number }) {
+  return (
+    <ol className="mb-6 flex flex-wrap gap-2">
+      {steps.map((step, index) => (
+        <li key={step} className={`rounded-full px-3 py-1 text-xs font-semibold ${index === current ? 'bg-navy text-white' : index < current ? 'bg-orange-100 text-accent' : 'bg-slate-100 text-slate-500'}`}>
+          {index + 1}. {step}
+        </li>
+      ))}
+    </ol>
+  )
+}
+
+export function FileUpload({ label, accept, onFile }: { label: string; accept?: string; onFile: (file: File) => void }) {
+  const inputRef = useRef<HTMLInputElement>(null)
+  return (
+    <div
+      className="cursor-pointer rounded-[10px] border-2 border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-steel-muted"
+      onClick={() => inputRef.current?.click()}
+      onDragOver={(e) => e.preventDefault()}
+      onDrop={(e) => {
+        e.preventDefault()
+        const file = e.dataTransfer.files[0]
+        if (file) onFile(file)
+      }}
     >
-      {children}
-    </span>
-  )
-}
-
-export function Alert({
-  children,
-  tone = 'danger',
-}: PropsWithChildren<{ tone?: 'danger' | 'success' | 'muted' }>) {
-  const styles = {
-    danger: 'bg-[rgba(198,40,40,0.08)] text-[var(--danger)] border-[rgba(198,40,40,0.2)]',
-    success: 'bg-[rgba(46,125,50,0.08)] text-[var(--success)] border-[rgba(46,125,50,0.2)]',
-    muted: 'bg-[var(--bone)] text-[var(--text-muted)] border-[var(--border)]',
-  }[tone]
-  return <div className={`rounded-lg border px-3 py-2 text-sm ${styles}`}>{children}</div>
-}
-
-export function EmptyState({ title, hint, action }: { title: string; hint?: string; action?: ReactNode }) {
-  return (
-    <div className="px-5 py-12 text-center relative overflow-hidden">
-      <div
-        className="pointer-events-none absolute inset-0 opacity-40"
-        style={{
-          background:
-            'radial-gradient(ellipse at 50% 0%, rgba(27,31,76,0.06), transparent 55%)',
-        }}
-      />
-      <p className="relative font-display text-lg text-[var(--navy)] uppercase tracking-wide">{title}</p>
-      {hint && (
-        <p className="relative mt-2 text-sm text-[var(--text-muted)] max-w-sm mx-auto leading-relaxed">
-          {hint}
-        </p>
-      )}
-      {action && <div className="relative mt-4 flex justify-center">{action}</div>}
+      <p className="font-medium text-navy">{label}</p>
+      <p>Arrastra el archivo o haz clic para elegirlo</p>
+      <input ref={inputRef} type="file" accept={accept} className="hidden" onChange={(e) => {
+        const file = e.target.files?.[0]
+        if (file) onFile(file)
+      }} />
     </div>
   )
 }
 
-export function DenseList({ children }: PropsWithChildren) {
-  return <ul className="dense-list">{children}</ul>
-}
-
-export function StockBar({ available, total }: { available: number; total: number }) {
-  const pct = total > 0 ? Math.min(100, Math.round((available / total) * 100)) : 0
-  const low = pct <= 25
+export function Table({ columns, rows, empty }: {
+  columns: { key: string; header: string; render?: (row: Record<string, unknown>) => ReactNode }[]
+  rows: Record<string, unknown>[]
+  empty?: string
+}) {
+  if (rows.length === 0) return <EmptyState title={empty ?? 'No hay registros'} />
   return (
-    <div className="space-y-1 min-w-[100px]">
-      <div className="flex justify-between text-[0.65rem] font-semibold text-[var(--text-muted)]">
-        <span>
-          {available}/{total}
-        </span>
-        <span>{pct}%</span>
-      </div>
-      <div className="h-1.5 rounded-full bg-[var(--bone)] overflow-hidden">
-        <div
-          className="h-full rounded-full transition-all duration-500"
-          style={{
-            width: `${pct}%`,
-            background: low ? 'var(--accent)' : 'var(--navy)',
-          }}
-        />
-      </div>
+    <div className="overflow-x-auto">
+      <table className="w-full text-left text-sm">
+        <thead>
+          <tr className="border-b text-xs uppercase text-steel-muted">
+            {columns.map((col) => <th key={col.key} className="px-2 py-2">{col.header}</th>)}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row, i) => (
+            <tr key={i} className="border-b border-slate-100 hover:bg-slate-50">
+              {columns.map((col) => (
+                <td key={col.key} className="px-2 py-2">{col.render ? col.render(row) : String(row[col.key] ?? '—')}</td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   )
+}
+
+export function Pagination({ page, totalPages, onPage }: { page: number; totalPages: number; onPage: (page: number) => void }) {
+  if (totalPages <= 1) return null
+  return (
+    <div className="mt-4 flex items-center justify-end gap-2 text-sm">
+      <Button variant="ghost" disabled={page <= 0} onClick={() => onPage(page - 1)}>Anterior</Button>
+      <span>Pagina {page + 1} de {totalPages}</span>
+      <Button variant="ghost" disabled={page + 1 >= totalPages} onClick={() => onPage(page + 1)}>Siguiente</Button>
+    </div>
+  )
+}
+
+export function Can({ permission, children }: { permission: string; children: ReactNode }) {
+  const raw = localStorage.getItem('hyeda_user')
+  const user = raw ? JSON.parse(raw) as { permissions?: string[] } : null
+  if (!user?.permissions?.includes(permission)) return null
+  return <>{children}</>
 }

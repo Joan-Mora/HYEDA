@@ -1,0 +1,132 @@
+spring:
+  application:
+    name: hyeda
+  profiles:
+    default: dev
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: America/Bogota
+          batch_size: 30
+        order_inserts: true
+        order_updates: true
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    # Deliberadamente en false: si la base tiene tablas sin historial de Flyway,
+    # queremos un error ruidoso y no que se salte las migraciones en silencio.
+    baseline-on-migrate: false
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 25MB
+  thymeleaf:
+    cache: false
+  threads:
+    virtual:
+      enabled: true
+  jackson:
+    default-property-inclusion: non_null
+    generator:
+      # Evita que los montos viajen en notacion cientifica (1.0E+7).
+      write-bigdecimal-as-plain: true
+
+server:
+  port: 8081
+  error:
+    include-message: always
+
+logging:
+  level:
+    co.edu.uniminuto.hyeda: INFO
+
+hyeda:
+  timezone: America/Bogota
+  storage-path: ./storage
+  public-base-url: http://localhost:5173
+  cors:
+    allowed-origin-patterns:
+      - http://localhost:*
+      - http://127.0.0.1:*
+  security:
+    jwt-secret: ${HYEDA_JWT_SECRET:hyeda-clave-de-desarrollo-cambiar-en-produccion-min-64-bytes-abcdefghijk}
+    access-token-minutes: 120
+    refresh-token-days: 14
+  admin:
+    username: ${HYEDA_ADMIN_USER:admin}
+    password: ${HYEDA_ADMIN_PASSWORD:AdminHyeda2026!}
+    full-name: la propietaria
+    phone: '570000000000'
+  rental:
+    # Ventana en la que el stock queda apartado mientras se completa el wizard.
+    reservation-minutes: 30
+    # Un cliente necesita este historial limpio para poder omitir el contrato.
+    trusted-min-rentals: 3
+    trusted-min-reputation: 75
+  jobs:
+    expire-reservations-cron: '0 */5 * * * *'
+    refresh-debts-cron: '0 30 7 * * *'
+    daily-report-cron: '0 0 20 * * *'
+    dispatch-notifications-cron: '0 * * * * *'
+    overdue-followup-cron: '0 0 9 * * MON'
+  integrations:
+    whatsapp:
+      enabled: false
+      token: ${WHATSAPP_TOKEN:}
+      phone-number-id: ${WHATSAPP_PHONE_NUMBER_ID:}
+      api-version: v21.0
+    payments:
+      provider: mock
+      currency: COP
+      wompi:
+        public-key: ${WOMPI_PUBLIC_KEY:}
+        private-key: ${WOMPI_PRIVATE_KEY:}
+        integrity-key: ${WOMPI_INTEGRITY_KEY:}
+    maps:
+      api-key: ${GOOGLE_MAPS_API_KEY:}
+    background-check:
+      provider: manual
+      api-key: ${BACKGROUND_CHECK_API_KEY:}
+      base-url: ${BACKGROUND_CHECK_BASE_URL:}
+
+---
+# Desarrollo: H2 en archivo, en modo de compatibilidad PostgreSQL.
+# Las migraciones Flyway son las mismas que en produccion.
+spring:
+  config:
+    activate:
+      on-profile: dev
+  datasource:
+    url: jdbc:h2:file:./data/hyeda;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH;AUTO_SERVER=TRUE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ''
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  devtools:
+    restart:
+      enabled: false
+
+---
+spring:
+  config:
+    activate:
+      on-profile: postgres
+  datasource:
+    url: jdbc:postgresql://${PGHOST:localhost}:${PGPORT:5432}/${PGDATABASE:hyeda}
+    username: ${PGUSER:hyeda}
+    password: ${PGPASSWORD:hyeda}
+    hikari:
+      maximum-pool-size: 10
+  thymeleaf:
+    cache: true
+
+logging:
+  level:
+    co.edu.uniminuto.hyeda: INFO

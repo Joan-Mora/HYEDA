@@ -1,0 +1,35 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:hyeda-test;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ''
+  jpa:
+    hibernate:
+      ddl-auto: none
+  flyway:
+    enabled: true
+  task:
+    scheduling:
+      enabled: false
+
+hyeda:
+  timezone: America/Bogota
+  storage-path: ./target/storage-test
+  security:
+    jwt-secret: clave-de-pruebas-hyeda-suficientemente-larga-para-hmac-sha-256-ok
+  jobs:
+    expire-reservations-cron: '0 0 5 * * *'
+    refresh-debts-cron: '0 0 6 * * *'
+    daily-report-cron: '0 0 20 * * *'
+    dispatch-notifications-cron: '0 * * * * *'
+    overdue-followup-cron: '0 0 9 * * MON'
+  integrations:
+    whatsapp:
+      enabled: false
+    payments:
+      provider: mock
+
+logging:
+  level:
+    org.hibernate.SQL: WARN

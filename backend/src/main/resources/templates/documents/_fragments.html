@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head><title>Fragmentos de documentos HYEDA</title></head>
+<body>
+
+<!--
+  Hoja de estilos comun a todos los documentos.
+  Pensada para impresion en carta: sin sombras, sin colores de fondo pesados y
+  con reglas de salto de pagina para que las tablas largas no se corten mal.
+-->
+<style th:fragment="styles">
+    @page {
+        size: letter;
+        margin: 12mm 12mm 16mm 12mm;
+        @bottom-center {
+            content: "Pagina " counter(page) " de " counter(pages);
+            font-family: sans-serif;
+            font-size: 7pt;
+            color: #6b7280;
+        }
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+        font-family: "Helvetica", sans-serif;
+        font-size: 9pt;
+        color: #111827;
+        margin: 0;
+    }
+
+    .brand-bar { border-bottom: 2.5pt solid #1B2A57; padding-bottom: 6pt; }
+
+    .letterhead { width: 100%; border-collapse: collapse; }
+    .letterhead td { vertical-align: top; }
+
+    /* Monograma HEA dibujado con CSS: no depende de archivos externos. */
+    .logo {
+        width: 62pt;
+        height: 62pt;
+        border: 3.5pt solid #1B2A57;
+        border-radius: 50%;
+        position: relative;
+    }
+    .logo span {
+        position: absolute;
+        font-weight: bold;
+        color: #1B2A57;
+        line-height: 1;
+        font-family: "Helvetica", sans-serif;
+    }
+    .logo .l-e { top: 11pt; left: 13pt; font-size: 17pt; }
+    .logo .l-h { top: 15pt; left: 25pt; font-size: 30pt; }
+    .logo .l-a { top: 33pt; left: 24pt; font-size: 17pt; }
+
+    .company-name { font-size: 14pt; font-weight: bold; color: #1B2A57; letter-spacing: 0.4pt; }
+    .company-tag { font-size: 8.5pt; font-weight: bold; color: #374151; }
+    .company-meta { font-size: 7.5pt; color: #4b5563; line-height: 1.45; }
+
+    .doc-box { border: 1.5pt solid #1B2A57; border-radius: 3pt; text-align: center; padding: 5pt 8pt; }
+    .doc-box .kind { font-size: 8.5pt; font-weight: bold; color: #1B2A57; text-transform: uppercase; }
+    .doc-box .serial { font-size: 15pt; font-weight: bold; color: #C2410C; letter-spacing: 0.5pt; }
+    .doc-box .date { font-size: 7pt; color: #4b5563; }
+
+    h2.section {
+        font-size: 8.5pt;
+        text-transform: uppercase;
+        letter-spacing: 0.6pt;
+        color: #FFFFFF;
+        background-color: #1B2A57;
+        padding: 3pt 6pt;
+        margin: 10pt 0 5pt 0;
+    }
+
+    table.grid { width: 100%; border-collapse: collapse; }
+    table.grid th, table.grid td { border: 0.6pt solid #9ca3af; padding: 3.5pt 5pt; }
+    table.grid th {
+        background-color: #1B2A57;
+        color: #FFFFFF;
+        font-size: 7.5pt;
+        text-transform: uppercase;
+        letter-spacing: 0.3pt;
+    }
+    table.grid tbody tr { page-break-inside: avoid; }
+    .num { text-align: right; }
+    .center { text-align: center; }
+
+    table.fields { width: 100%; border-collapse: collapse; }
+    table.fields td { padding: 2.5pt 4pt; border-bottom: 0.5pt solid #d1d5db; }
+    table.fields td.label {
+        width: 22%;
+        font-size: 7.5pt;
+        text-transform: uppercase;
+        color: #4b5563;
+        letter-spacing: 0.3pt;
+    }
+    table.fields td.value { font-weight: bold; }
+
+    .totals { width: 46%; border-collapse: collapse; margin-left: auto; margin-top: 8pt; }
+    .totals td { padding: 3pt 6pt; border-bottom: 0.5pt solid #d1d5db; }
+    .totals td.k { color: #4b5563; }
+    .totals td.v { text-align: right; font-weight: bold; }
+    .totals tr.grand td {
+        border-top: 1.2pt solid #1B2A57;
+        border-bottom: none;
+        font-size: 11pt;
+        color: #1B2A57;
+        padding-top: 5pt;
+    }
+
+    .clauses { font-size: 7.2pt; color: #374151; line-height: 1.5; text-align: justify; }
+    .clauses ol { margin: 3pt 0 0 12pt; padding: 0; }
+    .clauses li { margin-bottom: 2.5pt; }
+
+    .notice {
+        border: 0.8pt solid #C2410C;
+        background-color: #FFF7ED;
+        color: #7C2D12;
+        padding: 5pt 7pt;
+        font-size: 7.8pt;
+        margin-top: 8pt;
+    }
+
+    .signatures { width: 100%; border-collapse: collapse; margin-top: 22pt; page-break-inside: avoid; }
+    .signatures td { width: 33%; padding: 0 8pt; vertical-align: bottom; }
+    .sign-line { border-top: 0.8pt solid #374151; padding-top: 3pt; font-size: 7.5pt; color: #4b5563; }
+    .sign-img { height: 34pt; }
+
+    .footer-note {
+        margin-top: 14pt;
+        border-top: 0.8pt solid #d1d5db;
+        padding-top: 5pt;
+        font-size: 6.8pt;
+        color: #6b7280;
+        text-align: center;
+        line-height: 1.5;
+    }
+
+    .qr { width: 58pt; height: 58pt; }
+    .muted { color: #6b7280; }
+    .chip {
+        display: inline-block;
+        border: 0.6pt solid #1B2A57;
+        color: #1B2A57;
+        padding: 1pt 5pt;
+        font-size: 7pt;
+        text-transform: uppercase;
+    }
+</style>
+
+<!-- Encabezado con los datos legales de la empresa y el consecutivo del documento. -->
+<div th:fragment="letterhead(kind, serial, issuedAt)" class="brand-bar">
+    <table class="letterhead">
+        <tr>
+            <td style="width: 70pt;">
+                <div class="logo">
+                    <span class="l-e">E</span>
+                    <span class="l-h">H</span>
+                    <span class="l-a">A</span>
+                </div>
+            </td>
+            <td>
+                <div class="company-name" th:text="${company.legalName}">HERRAMIENTAS Y EQUIPOS DEL ARIARI</div>
+                <div class="company-tag">Alquiler de maquinaria liviana para construccion</div>
+                <div class="company-meta">
+                    <span th:text="${company.ownerName}">la propietaria</span><br/>
+                    NIT: <span th:text="${company.nit}">000.000.000-0</span> -
+                    <span th:text="${company.taxRegime}">Regimen Simplificado</span><br/>
+                    <span th:text="${company.address}">Calle 19 No. 12-47</span>,
+                    <span th:text="${company.city}">Granada, Meta</span><br/>
+                    Cel: <span th:text="${company.phone}">320 408 9057</span> -
+                    <span th:text="${company.email}">correo@hyeda.co</span>
+                </div>
+            </td>
+            <td style="width: 120pt;">
+                <div class="doc-box">
+                    <div class="kind" th:text="${kind}">Contrato de Arrendamiento</div>
+                    <div class="serial" th:text="${serial}">CTR-00001</div>
+                    <div class="date" th:text="${issuedAt}">01/01/2026</div>
+                </div>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<!-- Pie con QR de verificacion. El QR abre la ficha publica del documento. -->
+<div th:fragment="footer(verifyUrl, qrDataUri)">
+    <table style="width: 100%; margin-top: 14pt; border-collapse: collapse;">
+        <tr>
+            <td style="width: 70pt;">
+                <img class="qr" th:src="${qrDataUri}" alt="Codigo de verificacion"/>
+            </td>
+            <td style="vertical-align: middle;">
+                <div style="font-size: 7pt; color: #4b5563; line-height: 1.5;">
+                    <strong>Verificacion del documento.</strong> Escanea el codigo o visita<br/>
+                    <span th:text="${verifyUrl}" style="color: #1B2A57;">https://...</span><br/>
+                    para confirmar que este documento fue emitido por
+                    <span th:text="${company.tradeName}">HYEDA</span>.
+                </div>
+            </td>
+        </tr>
+    </table>
+    <div class="footer-note">
+        <span th:text="${company.legalName}">Herramientas y Equipos del Ariari</span> -
+        NIT <span th:text="${company.nit}">000.000.000-0</span> -
+        <span th:text="${company.address}">Calle 19 No. 12-47</span>,
+        <span th:text="${company.city}">Granada, Meta</span><br/>
+        Documento generado electronicamente por el sistema HYEDA el
+        <span th:text="${generatedAt}">01/01/2026 10:00</span>.
+    </div>
+</div>
+
+<!-- Bloque de firmas: entrega, transporte y recibido conforme. -->
+<table th:fragment="signatures(signatureDataUri)" class="signatures">
+    <tr>
+        <td>
+            <div style="height: 34pt;"></div>
+            <div class="sign-line">
+                ENTREGADO POR<br/>
+                <span class="muted">Herramientas y Equipos del Ariari</span>
+            </div>
+        </td>
+        <td>
+            <div style="height: 34pt;"></div>
+            <div class="sign-line">
+                CONDUCTOR / TRANSPORTADOR<br/>
+                <span class="muted">Nombre y cedula</span>
+            </div>
+        </td>
+        <td>
+            <div style="height: 34pt;">
+                <img th:if="${signatureDataUri != null}" class="sign-img" th:src="${signatureDataUri}"
+                     alt="Firma del cliente"/>
+            </div>
+            <div class="sign-line">
+                RECIBI CONFORME<br/>
+                <span th:text="${customer.name}">Nombre del cliente</span> -
+                C.C. <span th:text="${customer.document}">1.000.000</span>
+            </div>
+        </td>
+    </tr>
+</table>
+
+</body>
+</html>

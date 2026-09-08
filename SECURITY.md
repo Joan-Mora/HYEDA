@@ -21,10 +21,10 @@ Este documento cubre el repositorio académico/operativo de HYEDA: API Spring Bo
 
 | Control | Detalle |
 | --- | --- |
-| Autenticación | Login → **JWT** (Bearer) |
-| Almacenamiento token (UI) | Cliente (local); enviar en `Authorization` |
-| Autorización | Roles + permisos (RBAC) en endpoints `/api/**` |
-| Expiración JWT | Configurable (`hyeda.jwt.expiration-ms`, default 24h) |
+| Autenticación | Login → **JWT** access + refresh |
+| Almacenamiento token (UI) | `hyeda_access` / `hyeda_refresh` en localStorage |
+| Autorización | Permisos granulares (`@PreAuthorize`) y guards de UI |
+| Expiración | `hyeda.security.access-token-minutes` (120) y `refresh-token-days` (14) |
 
 Endpoints públicos típicos: login (y recursos estáticos del front en despliegues separados). El resto de `/api` requiere token válido.
 

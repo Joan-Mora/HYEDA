@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8"/>
+    <title th:text="'Reporte ' + ${serial}">Reporte de analiticas</title>
+    <style th:replace="~{documents/_fragments :: styles}"></style>
+    <style>
+        /* Graficas dibujadas con divs: OpenHTMLToPDF no ejecuta JavaScript. */
+        .chart { margin-top: 6pt; }
+        .chart .row { margin-bottom: 3.5pt; page-break-inside: avoid; }
+        .chart .cap { font-size: 7.5pt; color: #374151; margin-bottom: 1pt; }
+        .chart .track { background-color: #E5E7EB; height: 9pt; }
+        .chart .fill { background-color: #1B2A57; height: 9pt; }
+        .chart .fill.warm { background-color: #C2410C; }
+        .kpi-grid { width: 100%; border-collapse: separate; border-spacing: 5pt 0; }
+        .kpi {
+            border: 0.8pt solid #d1d5db;
+            border-top: 2.5pt solid #1B2A57;
+            padding: 5pt 7pt;
+            width: 25%;
+        }
+        .kpi .k { font-size: 6.8pt; text-transform: uppercase; color: #6b7280; letter-spacing: 0.3pt; }
+        .kpi .v { font-size: 13pt; font-weight: bold; color: #1B2A57; }
+        .kpi.warm { border-top-color: #C2410C; }
+        .kpi.warm .v { color: #C2410C; }
+    </style>
+</head>
+<body>
+
+<div th:replace="~{documents/_fragments :: letterhead('Reporte de Analiticas', ${serial}, ${issuedDate})}"></div>
+
+<div style="margin-top: 8pt; font-size: 10pt; font-weight: bold; color: #1B2A57;"
+     th:text="${periodLabel}">Del 01/01/2026 al 31/01/2026</div>
+
+<table class="kpi-grid" style="margin-top: 8pt;">
+    <tr>
+        <td class="kpi">
+            <div class="k">Alquileres abiertos</div>
+            <div class="v" th:text="${kpis.rentalsOpened}">24</div>
+        </td>
+        <td class="kpi">
+            <div class="k">Cerrados con pago</div>
+            <div class="v" th:text="${kpis.successfulRentals}">19</div>
+        </td>
+        <td class="kpi">
+            <div class="k">Valor facturado</div>
+            <div class="v" th:text="${billedLabel}">$ 8.400.000</div>
+        </td>
+        <td class="kpi warm">
+            <div class="k">Resultado</div>
+            <div class="v" th:text="${profitLabel}">$ 5.100.000</div>
+        </td>
+    </tr>
+    <tr><td colspan="4" style="height: 5pt;"></td></tr>
+    <tr>
+        <td class="kpi">
+            <div class="k">Ingresos</div>
+            <div class="v" th:text="${incomeLabel}">$ 6.200.000</div>
+        </td>
+        <td class="kpi">
+            <div class="k">Gastos</div>
+            <div class="v" th:text="${expenseLabel}">$ 1.100.000</div>
+        </td>
+        <td class="kpi warm">
+            <div class="k">Cartera pendiente</div>
+            <div class="v" th:text="${openDebtLabel}">$ 940.000</div>
+        </td>
+        <td class="kpi">
+            <div class="k">Ticket promedio</div>
+            <div class="v" th:text="${averageTicketLabel}">$ 350.000</div>
+        </td>
+    </tr>
+</table>
+
+<h2 class="section">Equipos mas alquilados</h2>
+<div class="chart" th:if="${!topProducts.isEmpty()}">
+    <div class="row" th:each="product : ${topProducts}">
+        <div class="cap">
+            <span th:text="${product.name}">Andamio tubular</span> -
+            <span th:text="${product.units} + ' unidades'">18 unidades</span> -
+            <span th:text="${product.amountLabel}">$ 900.000</span>
+        </div>
+        <div class="track">
+            <div class="fill" th:style="'width:' + ${product.percent} + '%;'"></div>
+        </div>
+    </div>
+</div>
+<div th:if="${topProducts.isEmpty()}" class="muted">Sin alquileres registrados en el periodo.</div>
+
+<h2 class="section">Cliente estrella por numero de alquileres</h2>
+<table class="grid">
+    <thead>
+    <tr>
+        <th style="width: 44%;">Cliente</th>
+        <th style="width: 22%;">Documento</th>
+        <th class="center" style="width: 14%;">Alquileres</th>
+        <th class="num" style="width: 20%;">Valor</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="row : ${topByCount}">
+        <td th:text="${row.name}">Cliente</td>
+        <td th:text="${row.document} ?: '-'">1.000.000</td>
+        <td class="center" th:text="${row.rentals}">7</td>
+        <td class="num" th:text="${row.amountLabel}">$ 1.900.000</td>
+    </tr>
+    <tr th:if="${topByCount.isEmpty()}">
+        <td colspan="4" class="center muted">Sin datos en el periodo</td>
+    </tr>
+    </tbody>
+</table>
+
+<h2 class="section">Cliente estrella por valor alquilado</h2>
+<table class="grid">
+    <thead>
+    <tr>
+        <th style="width: 44%;">Cliente</th>
+        <th style="width: 22%;">Documento</th>
+        <th class="center" style="width: 14%;">Alquileres</th>
+        <th class="num" style="width: 20%;">Valor</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="row : ${topByValue}">
+        <td th:text="${row.name}">Cliente</td>
+        <td th:text="${row.document} ?: '-'">1.000.000</td>
+        <td class="center" th:text="${row.rentals}">3</td>
+        <td class="num" th:text="${row.amountLabel}">$ 3.400.000</td>
+    </tr>
+    <tr th:if="${topByValue.isEmpty()}">
+        <td colspan="4" class="center muted">Sin datos en el periodo</td>
+    </tr>
+    </tbody>
+</table>
+
+<h2 class="section">Evolucion diaria</h2>
+<div class="chart" th:if="${!series.isEmpty()}">
+    <div class="row" th:each="point : ${series}">
+        <div class="cap">
+            <span th:text="${point.dateLabel}">01/01</span> -
+            facturado <span th:text="${point.billedLabel}">$ 320.000</span>,
+            ingresos <span th:text="${point.incomeLabel}">$ 250.000</span>
+        </div>
+        <div class="track">
+            <div class="fill" th:style="'width:' + ${point.percent} + '%;'"></div>
+        </div>
+    </div>
+</div>
+
+<h2 class="section">Devoluciones con novedad</h2>
+<table class="grid">
+    <thead>
+    <tr>
+        <th style="width: 50%;">Tipo de novedad</th>
+        <th class="center" style="width: 20%;">Casos</th>
+        <th class="num" style="width: 30%;">Cobrado</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="row : ${incidents}">
+        <td th:text="${row.condition}">DANIO</td>
+        <td class="center" th:text="${row.count}">3</td>
+        <td class="num" th:text="${row.chargedLabel}">$ 240.000</td>
+    </tr>
+    <tr th:if="${incidents.isEmpty()}">
+        <td colspan="3" class="center muted">Ninguna devolucion presento novedades</td>
+    </tr>
+    </tbody>
+</table>
+
+<h2 class="section">Quiebres y alertas de stock</h2>
+<table class="grid">
+    <thead>
+    <tr>
+        <th style="width: 52%;">Equipo</th>
+        <th class="center" style="width: 16%;">Disponible</th>
+        <th class="center" style="width: 16%;">Total</th>
+        <th class="center" style="width: 16%;">Estado</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="row : ${stockouts}">
+        <td th:text="${row.name}">Andamio tubular</td>
+        <td class="center" th:text="${row.available}">0</td>
+        <td class="center" th:text="${row.total}">12</td>
+        <td class="center" th:text="${row.outOfStock} ? 'AGOTADO' : 'BAJO'">AGOTADO</td>
+    </tr>
+    <tr th:if="${stockouts.isEmpty()}">
+        <td colspan="4" class="center muted">Ningun equipo se quedo sin unidades</td>
+    </tr>
+    </tbody>
+</table>
+
+<div th:replace="~{documents/_fragments :: footer(${verifyUrl}, ${qrDataUri})}"></div>
+
+</body>
+</html>

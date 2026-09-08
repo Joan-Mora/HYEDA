@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8"/>
+    <title th:text="'Reporte ' + ${serial}">Reporte de operacion</title>
+    <style th:replace="~{documents/_fragments :: styles}"></style>
+</head>
+<body>
+
+<div th:replace="~{documents/_fragments :: letterhead(${reportKind}, ${serial}, ${issuedDate})}"></div>
+
+<div style="margin-top: 8pt; font-size: 10pt; font-weight: bold; color: #1B2A57;"
+     th:text="${periodLabel}">Del 01/01/2026 al 01/01/2026</div>
+
+<h2 class="section">Resumen del periodo</h2>
+<table class="grid">
+    <thead>
+    <tr>
+        <th>Indicador</th>
+        <th class="num" style="width: 26%;">Valor</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td>Alquileres abiertos</td>
+        <td class="num" th:text="${summary.rentalsOpened}">4</td>
+    </tr>
+    <tr>
+        <td>Alquileres cerrados con pago completo</td>
+        <td class="num" th:text="${summary.rentalsClosed}">3</td>
+    </tr>
+    <tr>
+        <td>Ingresos recibidos</td>
+        <td class="num" th:text="${summary.incomeLabel}">$ 1.250.000</td>
+    </tr>
+    <tr>
+        <td>Gastos registrados</td>
+        <td class="num" th:text="${summary.expenseLabel}">$ 180.000</td>
+    </tr>
+    <tr>
+        <td><strong>Resultado del periodo</strong></td>
+        <td class="num"><strong th:text="${summary.profitLabel}">$ 1.070.000</strong></td>
+    </tr>
+    <tr>
+        <td>Cartera pendiente acumulada</td>
+        <td class="num" th:text="${summary.openDebtLabel}">$ 430.000</td>
+    </tr>
+    <tr>
+        <td>Equipos actualmente en la calle</td>
+        <td class="num" th:text="${summary.unitsOut}">37</td>
+    </tr>
+    </tbody>
+</table>
+
+<h2 class="section">Alquileres del periodo</h2>
+<table class="grid">
+    <thead>
+    <tr>
+        <th style="width: 15%;">Codigo</th>
+        <th style="width: 27%;">Cliente</th>
+        <th style="width: 13%;">Entrega</th>
+        <th style="width: 13%;">Devolucion</th>
+        <th style="width: 14%;">Estado</th>
+        <th class="num" style="width: 18%;">Valor</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="row : ${rentals}">
+        <td th:text="${row.code}">ALQ-2026-00001</td>
+        <td th:text="${row.customerName}">Cliente</td>
+        <td th:text="${row.startLabel}">01/01</td>
+        <td th:text="${row.endLabel}">11/01</td>
+        <td th:text="${row.status}">EN CURSO</td>
+        <td class="num" th:text="${row.amountLabel}">$ 220.000</td>
+    </tr>
+    <tr th:if="${rentals.isEmpty()}">
+        <td colspan="6" class="center muted">No hubo alquileres en el periodo</td>
+    </tr>
+    </tbody>
+</table>
+
+<h2 class="section">Material en poder de clientes</h2>
+<table class="grid">
+    <thead>
+    <tr>
+        <th style="width: 32%;">Equipo</th>
+        <th class="center" style="width: 10%;">Cant.</th>
+        <th style="width: 28%;">Cliente</th>
+        <th style="width: 15%;">Alquiler</th>
+        <th style="width: 15%;">Devolver el</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="held : ${heldItems}">
+        <td th:text="${held.productName}">Andamio tubular</td>
+        <td class="center" th:text="${held.quantity}">2</td>
+        <td th:text="${held.customerName}">Cliente</td>
+        <td th:text="${held.rentalCode}">ALQ-2026-00001</td>
+        <td th:text="${held.dueLabel}">11/01/2026</td>
+    </tr>
+    <tr th:if="${heldItems.isEmpty()}">
+        <td colspan="5" class="center muted">Todo el material esta en el patio</td>
+    </tr>
+    </tbody>
+</table>
+
+<div th:if="${!overdue.isEmpty()}">
+    <h2 class="section">Alquileres vencidos</h2>
+    <table class="grid">
+        <thead>
+        <tr>
+            <th style="width: 18%;">Codigo</th>
+            <th style="width: 34%;">Cliente</th>
+            <th style="width: 18%;">Vencio el</th>
+            <th class="center" style="width: 12%;">Dias</th>
+            <th class="num" style="width: 18%;">Valor</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="row : ${overdue}">
+            <td th:text="${row.code}">ALQ-2026-00001</td>
+            <td th:text="${row.customerName}">Cliente</td>
+            <td th:text="${row.endLabel}">11/01/2026</td>
+            <td class="center" th:text="${row.overdueDays}">3</td>
+            <td class="num" th:text="${row.amountLabel}">$ 220.000</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<div th:if="${!topProducts.isEmpty()}">
+    <h2 class="section">Equipos mas alquilados</h2>
+    <table class="grid">
+        <thead>
+        <tr>
+            <th style="width: 52%;">Equipo</th>
+            <th class="center" style="width: 20%;">Unidades</th>
+            <th class="num" style="width: 28%;">Facturado</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="product : ${topProducts}">
+            <td th:text="${product.name}">Andamio tubular</td>
+            <td class="center" th:text="${product.units}">18</td>
+            <td class="num" th:text="${product.amountLabel}">$ 900.000</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<div th:if="${!lowStock.isEmpty()}" class="notice">
+    <strong>Equipos con stock bajo:</strong>
+    <span th:each="product, it : ${lowStock}">
+        <span th:text="${product.name} + ' (' + ${product.available} + ')'">Andamio (1)</span
+        ><span th:if="${!it.last}">, </span>
+    </span>
+</div>
+
+<div th:replace="~{documents/_fragments :: footer(${verifyUrl}, ${qrDataUri})}"></div>
+
+</body>
+</html>

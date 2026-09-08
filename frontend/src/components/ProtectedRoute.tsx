@@ -1,11 +1,11 @@
 import { Navigate, Outlet } from 'react-router-dom'
 import { useAuth } from '../modules/auth/AuthContext'
-import { isAuthenticated as hasToken } from '../services/auth'
 
-export default function ProtectedRoute() {
-  const { isAuthenticated } = useAuth()
-  if (!isAuthenticated && !hasToken()) {
-    return <Navigate to="/login" replace />
+export function ProtectedRoute({ permission }: { permission?: string }) {
+  const { user, can } = useAuth()
+  if (!user) return <Navigate to="/login" replace />
+  if (permission && !can(permission)) {
+    return <div className="p-8 text-sm text-steel-muted">Tu rol no tiene acceso a esta seccion.</div>
   }
   return <Outlet />
 }

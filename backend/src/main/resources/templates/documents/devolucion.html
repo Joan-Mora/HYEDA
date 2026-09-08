@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8"/>
+    <title th:text="'Devolucion ' + ${serial}">Acta de Devolucion</title>
+    <style th:replace="~{documents/_fragments :: styles}"></style>
+</head>
+<body>
+
+<div th:replace="~{documents/_fragments :: letterhead('Acta de Devolucion', ${serial}, ${issuedDate})}"></div>
+
+<table class="fields" style="margin-top: 8pt;">
+    <tr>
+        <td class="label">Ciudad</td>
+        <td class="value" th:text="${company.city}">Granada, Meta</td>
+        <td class="label">Fecha de devolucion</td>
+        <td class="value" th:text="${returnDateLabel}">11/01/2026</td>
+    </tr>
+    <tr>
+        <td class="label">Nombre</td>
+        <td class="value" th:text="${customer.name}">Nombre del cliente</td>
+        <td class="label">C.C. / NIT</td>
+        <td class="value" th:text="${customer.documentType} + ' ' + ${customer.document}">CC 1.000.000</td>
+    </tr>
+    <tr>
+        <td class="label">Alquiler</td>
+        <td class="value" th:text="${rental.code}">ALQ-2026-00001</td>
+        <td class="label">Remision asociada</td>
+        <td class="value" th:text="${relatedSerial} ?: 'No aplica'">REM-00001</td>
+    </tr>
+    <tr>
+        <td class="label">Periodo</td>
+        <td class="value" colspan="3"
+            th:text="${startDateLabel} + ' al ' + ${returnDateLabel} + ' (' + ${rental.actualDays} + ' dias)'">
+            01/01/2026 al 11/01/2026</td>
+    </tr>
+</table>
+
+<h2 class="section">Elementos recibidos</h2>
+<table class="grid">
+    <thead>
+    <tr>
+        <th style="width: 40%;">Elemento</th>
+        <th class="center" style="width: 12%;">Entregado</th>
+        <th class="center" style="width: 12%;">Devuelto</th>
+        <th style="width: 20%;">Letras</th>
+        <th class="center" style="width: 16%;">Estado</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="item : ${items}">
+        <td th:text="${item.productName}">Andamio tubular</td>
+        <td class="center" th:text="${item.quantity}">2</td>
+        <td class="center" th:text="${item.quantityReturned}">2</td>
+        <td th:text="${item.returnedInWords}">Dos</td>
+        <td class="center" th:text="${item.conditionLabel}">Conforme</td>
+    </tr>
+    </tbody>
+</table>
+
+<div th:if="${!incidents.isEmpty()}">
+    <h2 class="section">Novedades reportadas</h2>
+    <table class="grid">
+        <thead>
+        <tr>
+            <th style="width: 16%;">Tipo</th>
+            <th style="width: 26%;">Equipo</th>
+            <th class="center" style="width: 8%;">Cant.</th>
+            <th style="width: 32%;">Motivo</th>
+            <th class="num" style="width: 18%;">Valor cobrado</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="incident : ${incidents}">
+            <td th:text="${incident.condition}">Dano</td>
+            <td th:text="${incident.productName} ?: 'General'">Andamio tubular</td>
+            <td class="center" th:text="${incident.quantity}">1</td>
+            <td th:text="${incident.reason}">Pata doblada</td>
+            <td class="num" th:text="${incident.chargeLabel}">$ 80.000</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<h2 class="section">Liquidacion final</h2>
+<table class="totals" style="width: 55%;">
+    <tr>
+        <td class="k" th:text="'Alquiler (' + ${chargedDaysLabel} + ')'">Alquiler (10 dias)</td>
+        <td class="v" th:text="${subtotalLabel}">$ 200.000</td>
+    </tr>
+    <tr th:if="${rental.haulingEnabled}">
+        <td class="k">Transporte</td>
+        <td class="v" th:text="${haulingLabel}">$ 30.000</td>
+    </tr>
+    <tr th:if="${hasLateFee}">
+        <td class="k" th:text="'Recargo por mora (' + ${lateDaysLabel} + ')'">Recargo por mora</td>
+        <td class="v" th:text="${lateFeeLabel}">$ 40.000</td>
+    </tr>
+    <tr th:if="${hasIncidentCharges}">
+        <td class="k">Danos y faltantes</td>
+        <td class="v" th:text="${incidentTotalLabel}">$ 80.000</td>
+    </tr>
+    <tr th:if="${hasDiscount}">
+        <td class="k">Descuento</td>
+        <td class="v" th:text="'- ' + ${discountLabel}">- $ 10.000</td>
+    </tr>
+    <tr class="grand">
+        <td class="k">TOTAL A PAGAR</td>
+        <td class="v" th:text="${totalLabel}">$ 340.000</td>
+    </tr>
+    <tr>
+        <td class="k">Abonado</td>
+        <td class="v" th:text="${paidLabel}">$ 200.000</td>
+    </tr>
+    <tr>
+        <td class="k" th:text="${hasRefund} ? 'Saldo a favor del cliente' : 'Saldo pendiente'">Saldo pendiente</td>
+        <td class="v" th:text="${balanceLabel}">$ 140.000</td>
+    </tr>
+</table>
+
+<div th:if="${earlyReturn}" class="notice">
+    El cliente devolvio el material antes de la fecha pactada. Se cobraron unicamente los
+    <span th:text="${rental.actualDays}">8</span> dias efectivamente utilizados en lugar de los
+    <span th:text="${rental.estimatedDays}">10</span> dias inicialmente estimados.
+</div>
+
+<div th:if="${rental.notes != null}" style="margin-top: 8pt; font-size: 7.8pt;">
+    <strong>Observaciones:</strong> <span th:text="${rental.notes}">Sin observaciones</span>
+</div>
+
+<div th:replace="~{documents/_fragments :: signatures(${signatureDataUri})}"></div>
+
+<div th:replace="~{documents/_fragments :: footer(${verifyUrl}, ${qrDataUri})}"></div>
+
+</body>
+</html>

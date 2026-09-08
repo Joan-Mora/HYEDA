@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8"/>
+    <title th:text="'Cuenta de cobro ' + ${serial}">Cuenta de Cobro</title>
+    <style th:replace="~{documents/_fragments :: styles}"></style>
+</head>
+<body>
+
+<div th:replace="~{documents/_fragments :: letterhead('Cuenta de Cobro', ${serial}, ${issuedDate})}"></div>
+
+<table class="fields" style="margin-top: 8pt;">
+    <tr>
+        <td class="label">Cliente</td>
+        <td class="value" th:text="${customer.name}">Nombre del cliente</td>
+        <td class="label">C.C. / NIT</td>
+        <td class="value" th:text="${customer.documentType} + ' ' + ${customer.document}">CC 1.000.000</td>
+    </tr>
+    <tr>
+        <td class="label">Alquiler</td>
+        <td class="value" th:text="${rental.code}">ALQ-2026-00001</td>
+        <td class="label">Periodo facturado</td>
+        <td class="value" th:text="${periodLabel}">01/01/2026 al 11/01/2026</td>
+    </tr>
+    <tr>
+        <td class="label">Direccion de obra</td>
+        <td class="value" colspan="3" th:text="${rental.deliveryAddress}">Calle 1 # 2-3</td>
+    </tr>
+</table>
+
+<h2 class="section">Detalle</h2>
+<table class="grid">
+    <thead>
+    <tr>
+        <th style="width: 42%;">Concepto</th>
+        <th class="center" style="width: 10%;">Cant.</th>
+        <th class="center" style="width: 12%;">Dias</th>
+        <th class="num" style="width: 16%;">Vr. unitario</th>
+        <th class="num" style="width: 20%;">Valor</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="item : ${items}">
+        <td th:text="${item.productName}">Andamio tubular</td>
+        <td class="center" th:text="${item.quantity}">2</td>
+        <td class="center" th:text="${item.billedDays}">10</td>
+        <td class="num" th:text="${item.unitPriceLabel}">$ 10.000</td>
+        <td class="num" th:text="${item.lineLabel}">$ 200.000</td>
+    </tr>
+    <tr th:if="${rental.haulingEnabled}">
+        <td colspan="4">Servicio de acarreo</td>
+        <td class="num" th:text="${haulingLabel}">$ 30.000</td>
+    </tr>
+    <tr th:if="${hasLateFee}">
+        <td colspan="4" th:text="'Recargo por entrega tardia (' + ${lateDaysLabel} + ')'">Recargo por mora</td>
+        <td class="num" th:text="${lateFeeLabel}">$ 40.000</td>
+    </tr>
+    <tr th:if="${hasIncidentCharges}">
+        <td colspan="4">Danos y faltantes reportados en la devolucion</td>
+        <td class="num" th:text="${incidentTotalLabel}">$ 80.000</td>
+    </tr>
+    <tr th:if="${hasDiscount}">
+        <td colspan="4" th:text="'Descuento: ' + ${rental.discountReason}">Descuento</td>
+        <td class="num" th:text="'- ' + ${discountLabel}">- $ 10.000</td>
+    </tr>
+    </tbody>
+</table>
+
+<table class="totals">
+    <tr class="grand">
+        <td class="k">TOTAL</td>
+        <td class="v" th:text="${totalLabel}">$ 340.000</td>
+    </tr>
+    <tr>
+        <td class="k">Pagado</td>
+        <td class="v" th:text="${paidLabel}">$ 340.000</td>
+    </tr>
+    <tr>
+        <td class="k" th:text="${hasRefund} ? 'Saldo a favor del cliente' : 'Saldo pendiente'">Saldo pendiente</td>
+        <td class="v" th:text="${balanceLabel}">$ 0</td>
+    </tr>
+</table>
+
+<h2 class="section">Pagos registrados</h2>
+<table class="grid">
+    <thead>
+    <tr>
+        <th style="width: 22%;">Fecha</th>
+        <th style="width: 20%;">Medio</th>
+        <th style="width: 34%;">Referencia</th>
+        <th class="num" style="width: 24%;">Valor</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="payment : ${payments}">
+        <td th:text="${payment.dateLabel}">01/01/2026</td>
+        <td th:text="${payment.type}">Efectivo</td>
+        <td th:text="${payment.reference} ?: '-'">-</td>
+        <td class="num" th:text="${payment.amountLabel}">$ 200.000</td>
+    </tr>
+    <tr th:if="${payments.isEmpty()}">
+        <td colspan="4" class="center muted">Sin pagos registrados</td>
+    </tr>
+    </tbody>
+</table>
+
+<div class="notice" th:if="${hasBalance}">
+    <strong>Saldo pendiente de <span th:text="${balanceLabel}">$ 140.000</span>.</strong>
+    Comuniquese con la administracion para acordar el pago.
+</div>
+
+<div style="margin-top: 12pt; font-size: 7.5pt; color: #4b5563;">
+    <span th:text="${company.taxRegime}">Regimen Simplificado</span>. Este documento equivale a cuenta de
+    cobro y no genera IVA. Agradecemos su pago dentro de los terminos acordados.
+</div>
+
+<div th:replace="~{documents/_fragments :: footer(${verifyUrl}, ${qrDataUri})}"></div>
+
+</body>
+</html>

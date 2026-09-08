@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8"/>
+    <title th:text="'Contrato ' + ${serial}">Contrato de Arrendamiento</title>
+    <style th:replace="~{documents/_fragments :: styles}"></style>
+</head>
+<body>
+
+<div th:replace="~{documents/_fragments :: letterhead('Contrato de Arrendamiento', ${serial}, ${issuedDate})}"></div>
+
+<h2 class="section">1. Partes del contrato</h2>
+<table class="fields">
+    <tr>
+        <td class="label">Arrendador</td>
+        <td class="value" colspan="3"
+            th:text="${company.legalName} + ' - NIT ' + ${company.nit}">HYEDA</td>
+    </tr>
+    <tr>
+        <td class="label">Arrendatario</td>
+        <td class="value" th:text="${customer.name}">Nombre del cliente</td>
+        <td class="label">C.C. / NIT</td>
+        <td class="value" th:text="${customer.documentType} + ' ' + ${customer.document}">CC 1.000.000</td>
+    </tr>
+    <tr>
+        <td class="label">Telefono</td>
+        <td class="value" th:text="${customer.phone} ?: 'No registrado'">320 000 0000</td>
+        <td class="label">Correo</td>
+        <td class="value" th:text="${customer.email} ?: 'No registrado'">correo@ejemplo.com</td>
+    </tr>
+    <tr>
+        <td class="label">Direccion de la obra</td>
+        <td class="value" colspan="3" th:text="${rental.deliveryAddress}">Calle 1 # 2-3</td>
+    </tr>
+    <tr th:if="${rental.deliveryReference != null}">
+        <td class="label">Referencia</td>
+        <td class="value" colspan="3" th:text="${rental.deliveryReference}">La obra del puente</td>
+    </tr>
+</table>
+
+<h2 class="section">2. Equipos entregados en arrendamiento</h2>
+<table class="grid">
+    <thead>
+    <tr>
+        <th style="width: 40%;">Descripcion del equipo</th>
+        <th class="center" style="width: 9%;">Cant.</th>
+        <th class="num" style="width: 17%;">Valor unitario dia</th>
+        <th class="center" style="width: 13%;">Periodo</th>
+        <th class="num" style="width: 21%;">Valor</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="item : ${items}">
+        <td th:text="${item.productName}">Andamio tubular</td>
+        <td class="center" th:text="${item.quantity}">2</td>
+        <td class="num" th:text="${item.unitPriceLabel}">$ 10.000</td>
+        <td class="center" th:text="${rental.estimatedDays} + ' dias'">10 dias</td>
+        <td class="num" th:text="${item.lineLabel}">$ 200.000</td>
+    </tr>
+    </tbody>
+</table>
+
+<table style="width: 100%; border-collapse: collapse; margin-top: 8pt;">
+    <tr>
+        <td style="width: 52%; vertical-align: top;">
+            <table class="fields">
+                <tr>
+                    <td class="label">Fecha de entrega</td>
+                    <td class="value" th:text="${startDateLabel}">01/01/2026</td>
+                </tr>
+                <tr>
+                    <td class="label">Fecha pactada de devolucion</td>
+                    <td class="value" th:text="${endDateLabel}">11/01/2026</td>
+                </tr>
+                <tr>
+                    <td class="label">Plazo</td>
+                    <td class="value" th:text="${rental.estimatedDays} + ' dias calendario'">10 dias</td>
+                </tr>
+                <tr>
+                    <td class="label">Servicio de acarreo</td>
+                    <td class="value"
+                        th:text="${rental.haulingEnabled} ? ('Si - ' + ${haulingLabel}) : 'No solicitado'">No</td>
+                </tr>
+            </table>
+        </td>
+        <td style="vertical-align: top;">
+            <table class="totals">
+                <tr>
+                    <td class="k">Subtotal equipos</td>
+                    <td class="v" th:text="${subtotalLabel}">$ 200.000</td>
+                </tr>
+                <tr th:if="${rental.haulingEnabled}">
+                    <td class="k">Transporte</td>
+                    <td class="v" th:text="${haulingLabel}">$ 30.000</td>
+                </tr>
+                <tr th:if="${hasDiscount}">
+                    <td class="k">Descuento</td>
+                    <td class="v" th:text="'- ' + ${discountLabel}">- $ 10.000</td>
+                </tr>
+                <tr class="grand">
+                    <td class="k">TOTAL ESTIMADO</td>
+                    <td class="v" th:text="${totalLabel}">$ 220.000</td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+
+<div th:if="${hasDiscount}" style="margin-top: 5pt; font-size: 7.5pt;">
+    <strong>Motivo del descuento:</strong> <span th:text="${rental.discountReason}">Cliente frecuente</span>
+</div>
+
+<div class="notice">
+    <strong>Aviso importante.</strong> El valor indicado es una estimacion por el plazo pactado. La liquidacion
+    definitiva se realiza al momento de la devolucion: si el equipo regresa antes se descuentan los dias no
+    utilizados, y si se entrega despues de la fecha pactada se cobra el recargo diario por mora indicado a
+    continuacion. <strong>Avise la fecha de recogida del equipo con anticipacion.</strong>
+</div>
+
+<h2 class="section">3. Recargo diario por entrega tardia</h2>
+<table class="grid">
+    <thead>
+    <tr>
+        <th style="width: 60%;">Equipo</th>
+        <th class="center" style="width: 15%;">Cantidad</th>
+        <th class="num" style="width: 25%;">Recargo por dia de atraso</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="item : ${items}">
+        <td th:text="${item.productName}">Andamio tubular</td>
+        <td class="center" th:text="${item.quantity}">2</td>
+        <td class="num" th:text="${item.lateFeeLabel}">$ 10.000</td>
+    </tr>
+    </tbody>
+</table>
+
+<h2 class="section">4. Clausulas</h2>
+<div class="clauses">
+    <ol>
+        <li><strong>Objeto.</strong> El arrendador entrega al arrendatario, a titulo de arrendamiento, los
+            equipos descritos en la clausula 2, que el arrendatario declara recibir en buen estado de
+            funcionamiento y conservacion.</li>
+        <li><strong>Plazo y prorroga.</strong> El plazo es el indicado en este documento. Cualquier
+            ampliacion debe acordarse con el arrendador antes del vencimiento; de lo contrario se causa el
+            recargo por mora de la clausula 3 por cada dia de atraso.</li>
+        <li><strong>Uso y custodia.</strong> El arrendatario se obliga a usar los equipos unicamente para la
+            finalidad propia de su naturaleza, en la direccion de obra registrada, y responde por su custodia
+            durante todo el tiempo que permanezcan en su poder.</li>
+        <li><strong>Perdida, hurto o dano.</strong> En caso de perdida, hurto o dano total o parcial, el
+            arrendatario pagara el valor de reposicion del equipo a precio de mercado, sin perjuicio de los
+            canones causados hasta la fecha de la reposicion.</li>
+        <li><strong>Prohibicion de cesion.</strong> El arrendatario no podra subarrendar, ceder ni trasladar
+            los equipos a un lugar distinto del registrado sin autorizacion escrita del arrendador.</li>
+        <li><strong>Transporte.</strong> Cuando se contrate el servicio de acarreo, el equipo sera entregado y
+            recogido hasta el sitio donde tenga acceso el camion.</li>
+        <li><strong>Devolucion.</strong> Al terminar el plazo el arrendatario debe devolver los equipos en el
+            mismo estado en que los recibio, salvo el deterioro natural derivado del uso normal.</li>
+        <li><strong>Merito ejecutivo.</strong> Las partes acuerdan que este contrato presta merito ejecutivo
+            por las sumas que el arrendatario llegue a adeudar por canones, recargos o reposicion de equipos.</li>
+        <li><strong>Tratamiento de datos.</strong> El arrendatario autoriza el tratamiento de sus datos
+            personales conforme a la Ley 1581 de 2012 y sus decretos reglamentarios, para la gestion de la
+            relacion comercial, la facturacion y el envio de notificaciones sobre este arrendamiento.</li>
+    </ol>
+</div>
+
+<div th:if="${rental.notes != null}" style="margin-top: 8pt; font-size: 7.8pt;">
+    <strong>Observaciones:</strong> <span th:text="${rental.notes}">Sin observaciones</span>
+</div>
+
+<div style="margin-top: 8pt; font-size: 7.5pt;">
+    <span class="chip">Tratamiento de datos aceptado</span>
+    <span th:if="${consentDateLabel != null}" class="muted"
+          th:text="' el ' + ${consentDateLabel}"> el 01/01/2026</span>
+</div>
+
+<div th:replace="~{documents/_fragments :: signatures(${signatureDataUri})}"></div>
+
+<div th:replace="~{documents/_fragments :: footer(${verifyUrl}, ${qrDataUri})}"></div>
+
+</body>
+</html>

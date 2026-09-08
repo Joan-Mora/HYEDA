@@ -1,322 +1,107 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useEffect, useMemo, useState } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useSearchParams } from 'react-router-dom'
-import { SkeletonRows, StatusPulse } from '../../components/Motion'
-import { PdfModal, WorksSites } from '../../components/Overlay'
-import { SlideOver } from '../../components/SlideOver'
+import { useEffect, useState } from 'react'
+import { Badge, Button, Drawer, EmptyState, Modal, PageHeader, Pagination, Panel } from '../../components/ui'
 import { useToast } from '../../components/Toast'
-import {
-  Alert,
-  Button,
-  ButtonLink,
-  EmptyState,
-  ModuleTabs,
-  PageHeader,
-} from '../../components/ui'
-import api, { getErrorMessage } from '../../services/api'
-import type { Document, Rental } from '../../types'
-import { formatDate, formatMoney } from '../../utils/format'
+import { api } from '../../services/api'
+import type { PageResponse, RentalRow, RentalView } from '../../types/api'
+import { getErrorMessage, money } from '../../lib/format'
+import { P } from '../../lib/permissions'
+import { useAuth } from '../auth/AuthContext'
 
-type HubTab = 'calle' | 'historial' | 'documentos'
-
-const ON_STREET: Rental['status'][] = [
-  'RESERVADO',
-  'DOCUMENTO_EMITIDO',
-  'EN_CURSO',
-  'PENDIENTE_PAGO',
-  'FACTURACION_FINAL',
-  'DEVUELTO',
-]
-
-function pulse(status: string) {
-  if (status === 'EN_CURSO' || status === 'DOCUMENTO_EMITIDO') return { s: 'en_calle' as const, l: 'En calle' }
-  if (status === 'PENDIENTE_PAGO' || status === 'CANCELADO') return { s: 'vencido' as const, l: status }
-  if (status === 'CERRADO' || status === 'DEVUELTO') return { s: 'ok' as const, l: 'En regla' }
-  return { s: 'muted' as const, l: status }
-}
-
-export default function AlquileresPage() {
-  const qc = useQueryClient()
+export function AlquileresPage() {
+  const { can } = useAuth()
   const toast = useToast()
+  const qc = useQueryClient()
   const [params, setParams] = useSearchParams()
-  const tab = (params.get('tab') as HubTab) || 'calle'
-  const focus = params.get('focus')
-  const [drawerId, setDrawerId] = useState<number | null>(null)
-  const [pdfId, setPdfId] = useState<number | null>(null)
+  const [page, setPage] = useState(0)
+  const [tab, setTab] = useState<'EN_CURSO' | ''>(params.get('tab') === 'historial' ? '' : 'EN_CURSO')
+  const [selected, setSelected] = useState<number | null>(params.get('focus') ? Number(params.get('focus')) : null)
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null)
 
-  const { data: rentals = [], isLoading, error } = useQuery({
-    queryKey: ['alquileres'],
-    queryFn: async () => (await api.get<Rental[]>('/alquileres')).data,
+  const list = useQuery({
+    queryKey: ['alquileres', tab, page],
+    queryFn: async () => (await api.get<PageResponse<RentalRow>>('/alquileres', { params: { estado: tab || undefined, page, size: 20 } })).data,
   })
-
-  const docsQuery = useQuery({
-    queryKey: ['documentos'],
-    enabled: tab === 'documentos' || pdfId != null,
-    queryFn: async () => (await api.get<Document[]>('/documentos')).data,
+  const detail = useQuery({
+    queryKey: ['alquiler', selected],
+    queryFn: async () => (await api.get<RentalView>(`/alquileres/${selected}`)).data,
+    enabled: selected != null,
   })
-
-  const onStreet = useMemo(
-    () =>
-      rentals.filter(
-        (r) => ON_STREET.includes(r.status) && r.status !== 'CERRADO' && r.status !== 'CANCELADO',
-      ),
-    [rentals],
-  )
-  const history = useMemo(() => [...rentals].sort((a, b) => b.id - a.id), [rentals])
-  const list = tab === 'calle' ? onStreet : history
-  const selected = rentals.find((r) => r.id === drawerId) || null
 
   useEffect(() => {
-    if (focus) {
-      const id = Number(focus)
-      if (Number.isFinite(id)) setDrawerId(id)
-    }
-  }, [focus])
+    if (params.get('focus')) setSelected(Number(params.get('focus')))
+  }, [params])
 
-  const workSites = onStreet
-    .filter((r) => (r.deliveryReference || r.deliveryAddress || '').trim().length > 0)
-    .map((r) => ({
-      id: r.id,
-      reference: r.deliveryReference,
-      address: r.deliveryAddress,
-      label: `#${r.id} · ${r.customerName || r.customerId}`,
-    }))
-
-  const act = useMutation({
-    mutationFn: async ({
-      id,
-      action,
-    }: {
-      id: number
-      action: 'emitir' | 'entregar' | 'devolver' | 'cerrar'
-    }) => {
-      if (action === 'emitir') return (await api.post(`/alquileres/${id}/emitir-documento`)).data
-      if (action === 'entregar') return (await api.post(`/alquileres/${id}/confirmar-entrega`)).data
-      if (action === 'devolver')
-        return (
-          await api.post(`/alquileres/${id}/devolver`, {
-            actualReturnDate: new Date().toISOString().slice(0, 10),
-            incidentReason: null,
-            incidentDescription: null,
-          })
-        ).data
-      return (await api.post(`/alquileres/${id}/cerrar`)).data
-    },
-    onSuccess: (_d, vars) => {
-      toast.success(`Alquiler #${vars.id}: ${vars.action} OK`)
+  async function act(path: string, body?: unknown) {
+    try {
+      await api.post(path, body)
+      toast.push('Listo')
       void qc.invalidateQueries({ queryKey: ['alquileres'] })
-      void qc.invalidateQueries({ queryKey: ['dashboard'] })
-      void qc.invalidateQueries({ queryKey: ['documentos'] })
-    },
-    onError: (err) => toast.error(getErrorMessage(err)),
-  })
-
-  function setTab(next: HubTab) {
-    const nextParams = new URLSearchParams(params)
-    if (next === 'calle') nextParams.delete('tab')
-    else nextParams.set('tab', next)
-    setParams(nextParams)
+      void qc.invalidateQueries({ queryKey: ['alquiler', selected] })
+    } catch (error) {
+      toast.push(getErrorMessage(error), 'error')
+    }
   }
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        eyebrow="Operación"
-        title="Alquileres"
-        subtitle="Hub con drawer, obras por dirección y documentos in-app"
-        actions={<ButtonLink to="/alquileres/nuevo">Abrir alquiler</ButtonLink>}
-      />
-
-      {error && <Alert>{getErrorMessage(error)}</Alert>}
-
-      {tab === 'calle' && <WorksSites sites={workSites} />}
-
-      <ModuleTabs
-        value={tab}
-        onChange={(id) => setTab(id as HubTab)}
-        tabs={[
-          { id: 'calle', label: `En calle (${onStreet.length})` },
-          { id: 'historial', label: `Historial (${rentals.length})` },
-          { id: 'documentos', label: 'Documentos' },
-        ]}
-      />
-
-      {(tab === 'calle' || tab === 'historial') && (
-        <section className="panel overflow-hidden anim-panel">
-          {isLoading ? (
-            <SkeletonRows rows={6} />
-          ) : list.length === 0 ? (
-            <EmptyState
-              title={tab === 'calle' ? 'Nada en calle' : 'Sin historial'}
-              action={<ButtonLink to="/alquileres/nuevo">Abrir alquiler</ButtonLink>}
-            />
-          ) : (
-            <ul className="divide-y divide-[var(--border)]">
-              {list.map((r) => {
-                const p = pulse(r.status)
-                return (
-                  <li key={r.id}>
-                    <button
-                      type="button"
-                      className="w-full text-left px-5 py-3.5 hover:bg-[#f9f9fb] flex items-center justify-between gap-3"
-                      onClick={() => setDrawerId(r.id)}
-                    >
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-semibold text-[var(--navy)]">#{r.id}</span>
-                          <StatusPulse status={p.s} label={p.l} />
-                        </div>
-                        <p className="text-sm truncate mt-0.5">{r.customerName || r.customerId}</p>
-                        <p className="text-xs text-[var(--text-muted)]">
-                          {formatDate(r.startDate)} · {formatMoney(r.finalAmount ?? r.totalAmount)}
-                        </p>
-                      </div>
-                      <span className="text-xs font-bold text-[var(--accent)] shrink-0">Abrir →</span>
-                    </button>
-                  </li>
-                )
-              })}
-            </ul>
-          )}
-        </section>
-      )}
-
-      {tab === 'documentos' && (
-        <section className="panel overflow-hidden">
-          {docsQuery.isLoading ? (
-            <SkeletonRows />
-          ) : (docsQuery.data || []).length === 0 ? (
-            <EmptyState title="Sin documentos" />
-          ) : (
-            <ul className="divide-y divide-[var(--border)]">
-              {(docsQuery.data || []).map((doc) => (
-                <li key={doc.id}>
-                  <button
-                    type="button"
-                    className="w-full text-left px-5 py-3 hover:bg-[#f9f9fb]"
-                    onClick={() => setPdfId(doc.id)}
-                  >
-                    <div className="font-medium text-[var(--navy)]">{doc.documentType}</div>
-                    <div className="text-xs text-[var(--text-muted)]">
-                      Alquiler #{doc.rentalId} · {formatDate(doc.generatedAt)}
-                    </div>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-      )}
-
-      <SlideOver
-        open={drawerId != null && selected != null}
-        onClose={() => setDrawerId(null)}
-        title={selected ? `Alquiler #${selected.id}` : ''}
-        subtitle="Detalle operativo"
-        width={460}
-      >
-        {selected && (
-          <div className="flex flex-col h-full">
-            <div className="p-5 space-y-4 flex-1">
-              <StatusPulse {...{ status: pulse(selected.status).s, label: pulse(selected.status).l }} />
-              <dl className="grid grid-cols-2 gap-3 text-sm">
-                <div>
-                  <dt className="text-xs uppercase font-bold text-[var(--text-muted)]">Cliente</dt>
-                  <dd className="font-medium">{selected.customerName || selected.customerId}</dd>
-                </div>
-                <div>
-                  <dt className="text-xs uppercase font-bold text-[var(--text-muted)]">Total</dt>
-                  <dd className="font-medium">{formatMoney(selected.finalAmount ?? selected.totalAmount)}</dd>
-                </div>
-                <div>
-                  <dt className="text-xs uppercase font-bold text-[var(--text-muted)]">Inicio</dt>
-                  <dd>{formatDate(selected.startDate)}</dd>
-                </div>
-                <div>
-                  <dt className="text-xs uppercase font-bold text-[var(--text-muted)]">Días</dt>
-                  <dd>{selected.estimatedDays ?? '—'}</dd>
-                </div>
-              </dl>
-              {(selected.deliveryReference || selected.deliveryAddress) && (
-                <div className="text-sm space-y-1">
-                  {selected.deliveryReference && (
-                    <p>
-                      <strong className="text-[var(--navy)]">Referencia:</strong> {selected.deliveryReference}
-                    </p>
-                  )}
-                  {selected.deliveryAddress && (
-                    <p className="text-[var(--text-muted)]">
-                      <strong className="text-[var(--navy)]">Dirección:</strong> {selected.deliveryAddress}
-                    </p>
-                  )}
-                </div>
-              )}
-              {(selected.items || []).length > 0 && (
-                <ul className="dense-list">
-                  {selected.items.map((it, i) => (
-                    <li key={i}>
-                      <span>
-                        {it.productName || `#${it.productId}`} × {it.quantity}
-                      </span>
-                      <span>{formatMoney(it.unitPrice)}</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
+    <div>
+      <PageHeader eyebrow="Operacion" title="Alquileres" subtitle="En calle, historial y drawer de gestion." />
+      <div className="mb-4 flex gap-2">
+        <Button variant={tab === 'EN_CURSO' ? 'navy' : 'ghost'} onClick={() => { setTab('EN_CURSO'); setPage(0) }}>En calle</Button>
+        <Button variant={tab === '' ? 'navy' : 'ghost'} onClick={() => { setTab(''); setPage(0); setParams({ tab: 'historial' }) }}>Historial</Button>
+      </div>
+      <Panel>
+        {(list.data?.content ?? []).map((r) => (
+          <button key={r.id} className="mb-2 flex w-full items-center justify-between rounded-lg bg-slate-50 px-3 py-2 text-left" onClick={() => setSelected(r.id)}>
+            <div>
+              <p className="font-medium text-navy">{r.code} · {r.customerName}</p>
+              <p className="text-xs text-steel-muted">{r.startDate} → {r.endDate} · {money(r.amount)}</p>
             </div>
-            <div className="p-4 border-t border-[var(--border)] flex flex-wrap gap-2 bg-[var(--bone)]">
-              <Button
-                variant="navy"
-                disabled={act.isPending}
-                onClick={() => act.mutate({ id: selected.id, action: 'emitir' })}
-              >
-                Emitir doc
-              </Button>
-              <Button
-                variant="ghost"
-                disabled={act.isPending}
-                onClick={() => act.mutate({ id: selected.id, action: 'entregar' })}
-              >
-                Entregar
-              </Button>
-              <Button
-                variant="ghost"
-                disabled={act.isPending}
-                onClick={() => act.mutate({ id: selected.id, action: 'devolver' })}
-              >
-                Devolver
-              </Button>
-              <Button
-                variant="primary"
-                disabled={act.isPending}
-                onClick={() => act.mutate({ id: selected.id, action: 'cerrar' })}
-              >
-                Cerrar
-              </Button>
-              <Button
-                variant="ghost"
-                onClick={() => {
-                  const doc = (docsQuery.data || []).find((d) => d.rentalId === selected.id)
-                  if (doc) setPdfId(doc.id)
-                  else {
-                    setTab('documentos')
-                    toast.push('Abre Documentos para ver PDFs de este alquiler')
-                  }
-                }}
-              >
-                Ver PDF
-              </Button>
-            </div>
+            <Badge tone={r.overdue ? 'danger' : 'navy'}>{r.status}</Badge>
+          </button>
+        ))}
+        {!list.data?.content.length && <EmptyState title="No hay alquileres en esta vista" />}
+        <Pagination page={page} totalPages={list.data?.totalPages ?? 0} onPage={setPage} />
+      </Panel>
+
+      <Drawer open={selected != null} title={detail.data?.code ?? 'Alquiler'} onClose={() => setSelected(null)}>
+        {detail.data && (
+          <div className="space-y-3 text-sm">
+            <p>{detail.data.customerName} · {detail.data.deliveryAddress}</p>
+            {detail.data.deliveryMapsUrl && <a className="text-accent" href={detail.data.deliveryMapsUrl} target="_blank" rel="noreferrer">Ver en Maps</a>}
+            <p>Total vigente {money(detail.data.currentAmount)} · Pendiente {money(detail.data.pendingAmount)}</p>
+            <ul>{detail.data.items.map((item) => <li key={item.id}>{item.productName} x{item.quantity}</li>)}</ul>
+            {can(P.ALQUILERES_GESTIONAR) && (
+              <div className="flex flex-wrap gap-2">
+                <Button variant="navy" onClick={() => act(`/documentos/alquiler/${detail.data.id}/emitir`)}>Emitir documento</Button>
+                <Button onClick={() => act(`/alquileres/${detail.data.id}/entregar`)}>Entregar</Button>
+                <Button variant="ghost" onClick={() => {
+                  const days = Number(prompt('Dias extra', '1'))
+                  if (days > 0) void act(`/alquileres/${detail.data.id}/extender`, { extraDays: days, reason: 'Extension en mostrador' })
+                }}>Extender</Button>
+                <Button variant="ghost" onClick={() => act(`/alquileres/${detail.data.id}/devolucion`, { returnDate: new Date().toISOString().slice(0, 10), incidents: [] })}>Devolver</Button>
+                {can(P.PAGOS_REGISTRAR) && (
+                  <Button variant="ghost" onClick={() => {
+                    const amount = Number(prompt('Valor recibido', String(detail.data.pendingAmount || detail.data.currentAmount)))
+                    if (amount > 0) void act(`/pagos/alquiler/${detail.data.id}/efectivo`, { amount, amountTendered: amount })
+                  }}>Cobrar efectivo</Button>
+                )}
+                <Button variant="ghost" onClick={async () => {
+                  const docs = await api.get(`/documentos/alquiler/${detail.data.id}`)
+                  const first = docs.data[0]
+                  if (!first) return toast.push('Aun no hay PDF', 'error')
+                  const blob = await api.get(`/documentos/${first.id}/contenido`, { responseType: 'blob' })
+                  setPdfUrl(URL.createObjectURL(blob.data))
+                }}>Ver PDF</Button>
+              </div>
+            )}
           </div>
         )}
-      </SlideOver>
-
-      <PdfModal
-        open={pdfId != null}
-        documentId={pdfId}
-        onClose={() => setPdfId(null)}
-        title="Vista previa del contrato"
-      />
+      </Drawer>
+      <Modal open={Boolean(pdfUrl)} title="Documento" onClose={() => setPdfUrl(null)}>
+        {pdfUrl && <iframe title="PDF" src={pdfUrl} className="h-[70vh] w-full rounded" />}
+      </Modal>
     </div>
   )
 }

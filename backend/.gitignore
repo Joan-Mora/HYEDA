@@ -23,9 +23,9 @@ target/
 .vscode/
 *.swp
 
-# Data / storage
-data/
-storage/
+# Datos locales y archivos subidos (no el paquete Java shared/files)
+/data/
+/storage/
 *.db
 
 # Env

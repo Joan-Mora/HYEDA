@@ -1,70 +1,43 @@
 import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
-import { SkeletonRows } from '../../components/Motion'
-import { PdfModal } from '../../components/Overlay'
-import { Alert, EmptyState, PageHeader } from '../../components/ui'
-import api, { getErrorMessage } from '../../services/api'
-import type { Document } from '../../types'
-import { formatDate } from '../../utils/format'
+import { Button, Input, Modal, PageHeader, Pagination, Panel } from '../../components/ui'
+import { api } from '../../services/api'
+import type { DocumentRow, PageResponse } from '../../types/api'
+import { datetimeEs } from '../../lib/format'
 
-export default function DocumentosPage() {
-  const [pdfId, setPdfId] = useState<number | null>(null)
-
-  const { data: documents = [], isLoading, error } = useQuery({
-    queryKey: ['documentos'],
-    queryFn: async () => {
-      const { data } = await api.get<Document[]>('/documentos')
-      return data
-    },
+export function DocumentosPage() {
+  const [q, setQ] = useState('')
+  const [page, setPage] = useState(0)
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null)
+  const list = useQuery({
+    queryKey: ['documentos', q, page],
+    queryFn: async () => (await api.get<PageResponse<DocumentRow>>('/documentos', { params: { buscar: q || undefined, page, size: 20 } })).data,
   })
 
-  const selected = documents.find((d) => d.id === pdfId) || null
-
   return (
-    <div className="space-y-6">
-      <PageHeader
-        eyebrow="Archivo"
-        title="Documentos"
-        subtitle="Contratos, remisiones y facturas generados"
-      />
-
-      {error && <Alert>{getErrorMessage(error, 'No se pudieron cargar los documentos')}</Alert>}
-
-      <section className="panel overflow-hidden">
-        {isLoading ? (
-          <SkeletonRows rows={6} />
-        ) : documents.length === 0 ? (
-          <EmptyState title="Sin documentos" hint="Se generan al emitir un alquiler." />
-        ) : (
-          <ul className="divide-y divide-[var(--border)]">
-            {documents.map((doc) => (
-              <li key={doc.id}>
-                <button
-                  type="button"
-                  onClick={() => setPdfId(doc.id)}
-                  className="w-full text-left px-5 py-3.5 hover:bg-[#f9f9fb] transition-colors flex items-center justify-between gap-3"
-                >
-                  <div className="min-w-0">
-                    <div className="font-semibold text-[var(--navy)]">{doc.documentType}</div>
-                    <div className="text-xs text-[var(--text-muted)] mt-1">
-                      {doc.serialNumber || `Doc #${doc.id}`} · Alquiler #{doc.rentalId} ·{' '}
-                      {formatDate(doc.generatedAt)}
-                    </div>
-                  </div>
-                  <span className="text-xs font-bold text-[var(--accent)] shrink-0">Ver PDF →</span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      <PdfModal
-        open={pdfId != null}
-        onClose={() => setPdfId(null)}
-        documentId={pdfId}
-        title={selected ? `${selected.documentType} · #${selected.id}` : 'Documento'}
-      />
+    <div>
+      <PageHeader eyebrow="Papeleria" title="Documentos" subtitle="Contratos, remisiones, devoluciones y cuentas de cobro." />
+      <Panel>
+        <Input label="Buscar" value={q} onChange={(e) => { setQ(e.target.value); setPage(0) }} />
+        <div className="mt-4 space-y-2">
+          {(list.data?.content ?? []).map((doc) => (
+            <div key={doc.id} className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2 text-sm">
+              <div>
+                <p className="font-medium text-navy">{doc.serialNumber} · {doc.documentTypeLabel}</p>
+                <p className="text-xs text-steel-muted">{doc.customerName} · {datetimeEs(doc.generatedAt)}</p>
+              </div>
+              <Button variant="ghost" onClick={async () => {
+                const blob = await api.get(`/documentos/${doc.id}/contenido`, { responseType: 'blob' })
+                setPdfUrl(URL.createObjectURL(blob.data))
+              }}>Ver</Button>
+            </div>
+          ))}
+        </div>
+        <Pagination page={page} totalPages={list.data?.totalPages ?? 0} onPage={setPage} />
+      </Panel>
+      <Modal open={Boolean(pdfUrl)} title="Visor PDF" onClose={() => setPdfUrl(null)}>
+        {pdfUrl && <iframe title="PDF" src={pdfUrl} className="h-[70vh] w-full rounded" />}
+      </Modal>
     </div>
   )
 }

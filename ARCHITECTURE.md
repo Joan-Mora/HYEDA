@@ -33,29 +33,22 @@ HYEDA es una aplicación **modular monolítica** en backend (Spring Boot) con **
 
 Paquete base: `co.edu.uniminuto.hyeda`
 
-| Capa | Responsabilidad |
-| --- | --- |
-| `controller` | HTTP, validación de entrada, códigos de estado |
-| `service` | Reglas de negocio (stock, estados de alquiler, pagos) |
-| `repository` | Acceso JPA |
-| `entity` / `dto` | Persistencia y contratos API |
-| `mapper` | MapStruct donde aplica (p. ej. inventario) |
+Arquitectura hexagonal ligera: cada dominio expone servicios y controladores; las integraciones entran por puertos (`WhatsAppPort`, `PaymentGatewayPort`, `BackgroundCheckPort`).
 
-### Módulos de dominio
-
-| Módulo | Utilidad |
+| Paquete | Utilidad |
 | --- | --- |
-| `auth` | Login, JWT, usuario actual |
-| `admin` | Usuarios, roles, permisos |
-| `clientes` | CRM, reputación, consentimiento |
-| `inventario` | Productos, stock total/disponible, umbrales |
-| `alquileres` | Wizard, reserva de stock, entrega, devolución, cierre |
-| `facturacion` / `pagos` | Efectivo, QR, abonos |
-| `documentos` | PDF (contrato, remisión, devolución, factura) |
-| `finanzas` | Movimientos, deudas |
-| `analytics` | KPIs y export Excel |
-| `importacion` | Carga semilla DOCX/XLSX |
-| `integraciones` | WhatsApp, Maps, notificaciones, antecedentes |
+| `iam` | Login, JWT + refresh, usuarios, roles, permisos |
+| `catalog` | Inventario, ledger, reservas con `SELECT FOR UPDATE` |
+| `crm` | Clientes, reputacion, antecedentes, ficha 360 |
+| `rental` | Maquina de estados, PricingService, wizard |
+| `documents` | PDF Thymeleaf, numeracion, QR |
+| `billing` | Pagos, deudas, saldo a favor |
+| `finance` | Libro de caja y cartera |
+| `notifications` | Outbox WhatsApp |
+| `analytics` | Tablero y reportes |
+| `imports` | CSV/Excel con previsualizacion |
+| `integrations` | Adaptadores reales/simulados |
+| `shared` | Money, auditoria, storage, empresa |
 
 ---
 
@@ -103,11 +96,12 @@ Patrones clave:
 
 ## Datos
 
-- Dev: H2 file `./data/hyeda` (`ddl-auto=update`).
+- Dev: H2 file `./data/hyeda` en modo PostgreSQL. Flyway obligatorio (`ddl-auto=none`).
 - Prod: perfil `postgres`.
+- Tests: H2 en memoria.
 - Archivos: `backend/storage/` (PDFs, evidencias, copias de documento) — **no versionados**.
 
-Esquema de referencia: [`docs/schema-hyeda-v2.sql`](docs/schema-hyeda-v2.sql).
+Migraciones: `backend/src/main/resources/db/migration/`. Esquema de referencia: [`docs/schema-hyeda-v2.sql`](docs/schema-hyeda-v2.sql).
 
 ---
 
