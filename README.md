@@ -90,8 +90,11 @@ Hay Dockerfiles listos y un Blueprint `render.yaml`.
 
 ### Opción A — Blueprint
 1. En Render: **New → Blueprint** → repo `Joan-Mora/HYEDA`.
-2. Define `HYEDA_ADMIN_PASS` y `HYEDA_CORS_ORIGINS` (URL del front, p. ej. `https://hyeda-web.onrender.com`).
-3. Ajusta `dockerBuildArgs.VITE_API_URL` en `render.yaml` a la URL real del API (`https://hyeda-api.onrender.com/api`) y **redeploy** el front.
+2. **No crea DB**: en Free solo hay 1 Postgres. Usa la que ya exista y en el sync pega:
+   - `SPRING_DATASOURCE_URL` = Internal Database URL
+   - `SPRING_DATASOURCE_USERNAME` / `PASSWORD` = user y pass de esa DB
+   - `HYEDA_ADMIN_PASS` y `HYEDA_CORS_ORIGINS` (URL del front)
+3. Ajusta `VITE_API_URL` a la URL real del API (`https://hyeda-api.onrender.com/api`) y **redeploy** el front si hace falta.
 
 ### Opción B — Manual
 1. Crea **PostgreSQL** Free.

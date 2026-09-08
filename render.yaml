@@ -1,14 +1,12 @@
 # Render Free blueprint — HYEDA
 # Docs: https://render.com/docs/blueprint-spec
-# 1) Create a PostgreSQL DB in the dashboard (or uncomment databases below)
-# 2) Connect this Blueprint from the HYEDA GitHub repo root
-# 3) Set secrets / sync frontend VITE_API_URL after the API URL is known
-
-databases:
-  - name: hyeda-db
-    plan: free
-    databaseName: hyeda
-    user: hyeda
+#
+# Free plan: solo 1 PostgreSQL activo. Este Blueprint NO crea DB nueva.
+# Usa la Postgres Free que ya tienes en el dashboard y pega sus credenciales
+# en las envVars con sync: false al aplicar el Blueprint.
+#
+# Internal Database URL (Render) → SPRING_DATASOURCE_URL
+# (acepta postgres://...; el backend lo convierte a jdbc:postgresql://)
 
 services:
   - type: web
@@ -21,24 +19,20 @@ services:
     envVars:
       - key: SPRING_PROFILES_ACTIVE
         value: postgres
+      # Pega Internal Database URL de tu Postgres Free existente
       - key: SPRING_DATASOURCE_URL
-        fromDatabase:
-          name: hyeda-db
-          property: connectionString
+        sync: false
       - key: SPRING_DATASOURCE_USERNAME
-        fromDatabase:
-          name: hyeda-db
-          property: user
+        sync: false
       - key: SPRING_DATASOURCE_PASSWORD
-        fromDatabase:
-          name: hyeda-db
-          property: password
+        sync: false
       - key: HYEDA_JWT_SECRET
         generateValue: true
       - key: HYEDA_ADMIN_USER
         value: admin
       - key: HYEDA_ADMIN_PASS
         sync: false
+      # Ej: https://hyeda-web.onrender.com
       - key: HYEDA_CORS_ORIGINS
         sync: false
       - key: HYEDA_STORAGE
@@ -50,8 +44,7 @@ services:
     plan: free
     dockerfilePath: ./frontend/Dockerfile
     dockerContext: ./frontend
-    # Render pasa envVars como Docker build-args (ARG VITE_API_URL en el Dockerfile).
-    # Ajusta la URL tras el primer deploy del API si el hostname difiere.
+    # Render pasa envVars como Docker build-args (ARG VITE_API_URL).
     envVars:
       - key: VITE_API_URL
         value: https://hyeda-api.onrender.com/api
