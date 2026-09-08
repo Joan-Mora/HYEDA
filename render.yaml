@@ -1,27 +1,31 @@
 # Render Free blueprint — HYEDA
 # Docs: https://render.com/docs/blueprint-spec
 #
-# Free plan: solo 1 PostgreSQL activo. Este Blueprint NO crea DB nueva.
-# Usa la Postgres Free que ya tienes en el dashboard.
+# Región: Virginia (US East) — latencia razonable para LATAM.
+# Si omites region, Render usa oregon por defecto (NO queremos eso).
 #
-# IMPORTANTE — SPRING_DATASOURCE_URL:
-# Usa la External Database URL (host tipo dpg-xxx-a.REGION-postgres.render.com),
-# NO la Internal (host corto dpg-xxx-a). El host interno falla con
-# UnknownHostException si API y DB no están en la misma región / red privada.
-# El backend convierte postgres:// → jdbc:postgresql:// y añade sslmode=require.
+# Free plan: solo 1 PostgreSQL activo. Este Blueprint NO crea DB nueva.
+# La Postgres Free existente debe estar también en Virginia; si no,
+# Internal DNS falla (UnknownHostException dpg-xxx-a).
+#
+# SPRING_DATASOURCE_URL:
+# Preferir Internal Database URL si API + DB están en Virginia.
+# Si aún falla DNS, usa External (host …virginia-postgres.render.com).
+# El backend convierte postgres:// → jdbc:postgresql:// y añade sslmode=require en External.
 
 services:
   - type: web
     name: hyeda-api
     runtime: docker
     plan: free
+    region: virginia
     dockerfilePath: ./backend/Dockerfile
     dockerContext: ./backend
     healthCheckPath: /api/auth/health
     envVars:
       - key: SPRING_PROFILES_ACTIVE
         value: postgres
-      # External Database URL completa (Connect → External)
+      # Postgres Connect → Internal (misma región) o External
       - key: SPRING_DATASOURCE_URL
         sync: false
       - key: SPRING_DATASOURCE_USERNAME
@@ -44,6 +48,7 @@ services:
     name: hyeda-web
     runtime: docker
     plan: free
+    region: virginia
     dockerfilePath: ./frontend/Dockerfile
     dockerContext: ./frontend
     # Render pasa envVars como Docker build-args (ARG VITE_API_URL).
