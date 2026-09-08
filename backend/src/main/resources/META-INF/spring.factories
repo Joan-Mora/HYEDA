@@ -1,0 +1,2 @@
+org.springframework.boot.EnvironmentPostProcessor=\
+co.edu.uniminuto.hyeda.config.PostgresUrlEnvironmentPostProcessor
