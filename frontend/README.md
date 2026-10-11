@@ -12,7 +12,7 @@ npm run dev
 
 - App: http://localhost:5173  
 - API: `http://localhost:8081/api` (`VITE_API_URL`)
-- Login (backend): `admin` / `AdminHyeda2026!`
+- Login (backend): user from `HYEDA_ADMIN_USER` (default `admin`), password from `HYEDA_ADMIN_PASS`
 
 ## Stack
 

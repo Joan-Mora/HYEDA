@@ -1,5 +1,6 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { BrandLockup } from '../brand/Logo'
+import { company } from '../brand/company'
 import { useAuth } from '../modules/auth/AuthContext'
 import { Pressable } from './Overlay'
 
@@ -101,9 +102,15 @@ export default function Layout() {
                 color: 'var(--steel-muted)',
               }}
             >
-              <strong style={{ color: 'var(--navy)' }}>NIT 000.000.000-0</strong>
-              <br />
-              la propietaria
+              <strong style={{ color: 'var(--navy)' }}>
+                {company.nit ? `NIT ${company.nit}` : company.city}
+              </strong>
+              {company.owner && (
+                <>
+                  <br />
+                  {company.owner}
+                </>
+              )}
             </div>
           </div>
         </aside>

@@ -12,6 +12,7 @@ public class HyedaProperties {
     private String storagePath;
     private String assetsPath;
     private Admin admin = new Admin();
+    private Company company = new Company();
     private Whatsapp whatsapp = new Whatsapp();
     private Payments payments = new Payments();
     private Maps maps = new Maps();
@@ -31,7 +32,14 @@ public class HyedaProperties {
     public static class Admin {
         private String username = "admin";
         private String password = "AdminHyeda2026!";
-        private String fullName = "la propietaria";
+        private String fullName = "Administrador";
+    }
+
+    @Data
+    public static class Company {
+        private String name = "Herramientas y Equipos del Ariari";
+        private String nit;
+        private String city = "Granada, Meta";
     }
 
     @Data

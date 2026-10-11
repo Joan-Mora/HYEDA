@@ -73,5 +73,5 @@ Primera entrega pública del producto como **centro de control del patio**.
 ---
 
 <p align="center">
-  <sub>HEA · NIT 000.000.000-0 · Granada, Meta</sub>
+  <sub>HEA · Granada, Meta</sub>
 </p>

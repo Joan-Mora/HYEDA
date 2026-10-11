@@ -145,7 +145,7 @@ export default function WizardPage() {
   })
 
   function whatsappLink(rental: Rental) {
-    const phone = selected?.phone?.replace(/\D/g, '') || '570000000000'
+    const phone = selected?.phone?.replace(/\D/g, '') || ''
     const text = encodeURIComponent(
       `HYEDA · Alquiler #${rental.id}\nCliente: ${selected?.name}\nTotal: ${formatMoney(subtotal)}\nReferencia: ${reference}\nDirección: ${address}\nDocumento: ${documentType}`,
     )

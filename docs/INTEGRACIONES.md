@@ -10,7 +10,9 @@ Este documento lista las credenciales y pasos para activar WhatsApp, pagos QR, G
    - `WHATSAPP_TOKEN` (token permanente del sistema)
    - `WHATSAPP_PHONE_NUMBER_ID`
    - `WHATSAPP_BUSINESS_ACCOUNT_ID` (opcional, para plantillas)
-4. Número admin para reportes: `WHATSAPP_ADMIN_PHONE=0000000000` (o el de la empresa).
+4. Número admin para reportes: `WHATSAPP_ADMIN_PHONE=57XXXXXXXXXX` (celular de la empresa, con indicativo).
+   Los datos de la empresa se configuran con `HYEDA_COMPANY_NAME`, `HYEDA_COMPANY_NIT`, `HYEDA_COMPANY_CITY`
+   (backend) y `VITE_COMPANY_NIT`, `VITE_COMPANY_OWNER`, `VITE_COMPANY_CITY` (frontend).
 5. En `application.properties` / variables de entorno:
    ```
    hyeda.whatsapp.enabled=true

@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import Logo, { BrandLockup } from '../../brand/Logo'
+import { company } from '../../brand/company'
 import { Alert, Button } from '../../components/ui'
 import { getErrorMessage } from '../../services/api'
 import { useAuth } from './AuthContext'
@@ -70,7 +71,7 @@ export default function LoginPage() {
         </div>
 
         <p className="relative z-[1] text-xs uppercase tracking-[0.14em] text-white/45">
-          Granada, Meta · NIT 000.000.000-0 · la propietaria
+          {[company.city, company.nit && `NIT ${company.nit}`, company.owner].filter(Boolean).join(' · ')}
         </p>
       </section>
 

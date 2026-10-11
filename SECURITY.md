@@ -5,7 +5,7 @@
 # SECURITY — HYEDA
 
 Política de seguridad y buenas prácticas para el sistema **HYEDA**  
-(*Herramientas y Equipos del Ariari* · Granada, Meta · NIT 000.000.000-0).
+(*Herramientas y Equipos del Ariari* · Granada, Meta).
 
 ---
 

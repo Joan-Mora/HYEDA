@@ -1,5 +1,6 @@
 package co.edu.uniminuto.hyeda.modules.documentos.service;
 
+import co.edu.uniminuto.hyeda.config.HyedaProperties;
 import co.edu.uniminuto.hyeda.modules.alquileres.entity.DocumentType;
 import co.edu.uniminuto.hyeda.modules.alquileres.entity.Rental;
 import co.edu.uniminuto.hyeda.modules.alquileres.entity.RentalItem;
@@ -27,11 +28,14 @@ public class DocumentService {
 
     private final GeneratedDocumentRepository documentRepository;
     private final FileStorageService fileStorageService;
+    private final HyedaProperties properties;
 
     public DocumentService(GeneratedDocumentRepository documentRepository,
-                           FileStorageService fileStorageService) {
+                           FileStorageService fileStorageService,
+                           HyedaProperties properties) {
         this.documentRepository = documentRepository;
         this.fileStorageService = fileStorageService;
+        this.properties = properties;
     }
 
     public List<DocumentDto> findAll() {
@@ -148,9 +152,12 @@ public class DocumentService {
                 + "th,td{border:1px solid #ccc;padding:6px;text-align:left}"
                 + "th{background:#f3f0ec}"
                 + ".foot{margin-top:24px;font-size:11px;color:#666}";
+        HyedaProperties.Company company = properties.getCompany();
+        String nit = company.getNit() == null || company.getNit().isBlank()
+                ? "" : "NIT " + esc(company.getNit()) + " | ";
         return "<html><head><style>" + style + "</style></head><body>"
-                + "<h1>HYEDA - Herramientas y Equipos del Ariari</h1>"
-                + "<div class=\"meta\">NIT 000.000.000-0 | Granada, Meta | " + type.name() + "</div>"
+                + "<h1>HYEDA - " + esc(company.getName()) + "</h1>"
+                + "<div class=\"meta\">" + nit + esc(company.getCity()) + " | " + type.name() + "</div>"
                 + "<h2>" + title + "</h2>"
                 + "<p><b>Cliente:</b> " + esc(rental.getCustomer().getName())
                 + " (" + esc(rental.getCustomer().getDocument()) + ")<br/>"
